@@ -1,5 +1,7 @@
 <template>
-    <canvas id="myCanvas" class="canvas" style="border:1px solid #000000;"> </canvas>
+    <div class="drawArea">
+        <canvas id="myCanvas" class="canvas" style="border:1px solid #000000;"> </canvas>
+    </div>
 </template>
 
 <script setup lang="ts">
@@ -15,11 +17,11 @@ let lastImg:ImageModel = null
 let initial:any = null
 let startTouch:any = null
 let canMove = false
-const manageStore = useManageStore()
+let { modelsManage, selectModel} = useManageStore()
 
 function draw () {
     ctx.clearRect(0, 0, canvas.width, canvas.height)
-    manageStore.modelsManage.forEach((item) => {
+    modelsManage.forEach((item) => {
         item.paint()
     })
 }
@@ -30,7 +32,7 @@ function start (e:MouseEvent) {
     clickedkArr = []
     const x = e.clientX
     const y = e.clientY
-    manageStore.modelsManage.forEach((item, index) => {
+    modelsManage.forEach((item, index) => {
         const place = item.getImageOrder(x, y - canvas.offsetTop)
         item.place = place
         item.index = index
@@ -45,13 +47,13 @@ function start (e:MouseEvent) {
         // 我们知道cavans绘制的图片的层级是越来越高的，因此我们取这个数组的最后一项，保证取到的图片实例是层级最高的
         lastImg = clickedkArr[length - 1]
         if (lastImg.place === 'del') {
-            manageStore.modelsManage.splice(lastImg.index, 1)
+            modelsManage.splice(lastImg.index, 1)
             // 重新绘制
             draw()
             return
         }
         // 将该实例的被选值设为true，下次重新绘制将绘制边框
-        manageStore.selectModel = lastImg
+        selectModel = lastImg
         lastImg.selected = true
         // 保存这个实例的初始值，以后会用上
         initial = {
@@ -66,9 +68,9 @@ function start (e:MouseEvent) {
     draw()
     // 保存点击的坐标，move时要用
     startTouch = { startX: x, startY: y }
-    canvas.onmousemove = e => move(e)
+    canvas.addEventListener("mousemove", move)
+    canvas.addEventListener("mousemove", mouseOver)
 }
-
 
 function move (e:MouseEvent) {
     if(!canMove) return
@@ -76,16 +78,14 @@ function move (e:MouseEvent) {
     const y = e.clientY
     const { initialX, initialY } = initial
     const { startX, startY } = startTouch
+    const { centerX, centerY } = lastImg
     if (clickedkArr.length) {
         if (lastImg.place === 'move') {
             canvas.style.cursor = "move"
             // 算出移动后的xy坐标与点击时xy坐标的差（即平移量）与图片对象的初始坐标相加即可
             lastImg.x = initialX + (x - startX)
             lastImg.y = initialY + (y - startY)
-        }
-        if (lastImg.place === 'transform') {
-            canvas.style.cursor = "se-resize"
-            const { centerX, centerY } = lastImg
+        }else if (lastImg.place === 'scale') {
             // 缩放部分
             const { initialH, initialW } = initial
             // 用勾股定理算出距离
@@ -102,34 +102,60 @@ function move (e:MouseEvent) {
                 lastImg.x = initialX - (lineB - lineA) / 2
                 lastImg.y = initialY - (lineB - lineA) / 2
             }
+        }else if(lastImg.place === 'rotate') {
+            // 旋转部分
+            const { initialRotate } = initial
+            const angleBefore = Math.atan2(startY - centerY, startX - centerX) / Math.PI * 180
+            const angleAfter = Math.atan2(y - centerY, x - centerX) / Math.PI * 180
+            // 旋转的角度
+            lastImg.rotate = initialRotate + angleAfter - angleBefore
         }
         draw()
     }
 }
 
+function mouseOver(e:MouseEvent) {
+    const x = e.clientX
+    const y = e.clientY
+    const place = selectModel.getImageOrder(x, y - canvas.offsetTop)
+    if (place !== "false") {
+        if (place === 'move') {
+            canvas.style.cursor = "move"
+        }else if (place === 'scale') {
+            canvas.style.cursor = "se-resize"
+        }else if (place === 'del') {
+            canvas.style.cursor = "pointer"
+        }else if (place === 'rotate') {
+            canvas.style.cursor = "pointer"
+        }
+    }else {
+        canvas.style.cursor = ""
+    }
+}
+
 function changeImage() {
-    if(!manageStore.selectModel) return;
+    if(!selectModel) return;
     onLoadImage(res => {
-        manageStore.selectModel.reLoadImg(res as string)
+        selectModel.reLoadImg(res as string)
         draw()
     })
 }
 
 function pushImage(src:string) {
     const item = new ImageModel(src, ctx)
-    manageStore.modelsManage.push(item)
+    modelsManage.push(item)
     draw()
 }
 defineExpose({pushImage})
 onMounted(() => {
     canvas = document.getElementById('myCanvas') as HTMLCanvasElement
     const { width, height } = window.screen
-    canvas.width = width - 2
-    canvas.height = height * 0.75
+    canvas.width = width * 0.75
+    canvas.height = height * 0.90
     canvas.onmousedown = e => start(e)
     canvas.ondblclick = e => changeImage()
     canvas.onmouseup = e => {
-        canvas.onmousemove = null;
+        canvas.removeEventListener("mousemove", move)
         document.onmouseup = null;
         canMove = false;
         canvas.style.cursor = ""
@@ -140,6 +166,7 @@ onMounted(() => {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
+
 #myCanvas {
     background-repeat: no-repeat;
     background-size: contain;

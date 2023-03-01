@@ -28,6 +28,8 @@ export default class ImageModel {
 
 		private _reload:boolean
 
+		private _iconWidth:number = 24
+
     constructor(src:string, ctx:CanvasRenderingContext2D){
 			//x y为初始坐标
 			this.x = 0;
@@ -81,19 +83,24 @@ export default class ImageModel {
         ScaleIcon.src = "../../src/assets/icons/scale.png"
         const CloseIcon = new Image()
         CloseIcon.src = "../../src/assets/icons/close.png"
+        const RotateIcon = new Image()
+        RotateIcon.src = "../../src/assets/icons/rotate.png"
         // 如果是选中状态，绘制选择虚线框，和缩放图标、删除图标
         if (this.selected) {
-          //对于canvas其他的描述api，因为不是重点就不详细描述出来，相信你们聪明得脑袋动动小手百度一下就懂了
+          //对于canvas其他的描述api
           this._ctx.setLineDash([10, 10]);
           this._ctx.lineWidth = 2;
           this._ctx.strokeStyle = "rgb(0, 110, 255)";
           this._ctx.lineDashOffset = 10;
           this._ctx.strokeRect(this.x, this.y, this.w, this.h);
 					ScaleIcon.onload = () => {
-						this._ctx.drawImage(ScaleIcon, this.x + this.w - 15, this.y + this.h - 15, 24, 24);
+						this._ctx.drawImage(ScaleIcon, this.x + this.w - 15, this.y + this.h - 15, this._iconWidth, this._iconWidth);
 					}
 					CloseIcon.onload = () => {
-						this._ctx.drawImage(CloseIcon, this.x - 12, this.y - 12, 24, 24)
+						this._ctx.drawImage(CloseIcon, this.x - this._iconWidth / 2, this.y - this._iconWidth / 2, this._iconWidth, this._iconWidth)
+					}
+					RotateIcon.onload = () => {
+						this._ctx.drawImage(RotateIcon, this.centerX, this.centerY * 2 - this.y, this._iconWidth, this._iconWidth)
 					}
 					
         }
@@ -108,18 +115,14 @@ export default class ImageModel {
 		 */
     public getImageOrder(x:number, y:number):string {
 			// 变换区域左上角的坐标和区域的高度宽度
-			let transformW = 24,transformH = 24;
 			let transformX = this.x + this.w ;
 			let transformY = this.y + this.h ;
-			//获得图标旋转后的角度，等于初始角度+图片旋转角度
+			// 获得图标旋转后的角度，等于初始角度+图片旋转角度
 			let transformAngle = Math.atan2(transformY - this.centerY, transformX - this.centerX) / Math.PI * 180 + this.rotate
-			//获得该角度下图标的xy坐标
-			let transformXY = this.getTransform(transformX, transformY, transformAngle);
-			//将新的坐标赋值给坐标变量
-			// 删除区域左上角的坐标和区域的高度宽度
-			const delW = 24
-			const delH = 24
-			transformX = transformXY.x, transformY = transformXY.y
+			// 获得该角度下图标的xy坐标
+			let scaleXY = this.getTransform(transformX, transformY, transformAngle);
+			// 将新的坐标赋值给坐标变量
+			let scaleX = scaleXY.x, scaleY = scaleXY.y
 			let delX = this.x;
 			let delY = this.y;
 			let delAngle = Math.atan2(delY - this.centerY, delX - this.centerX) / Math.PI * 180 + this.rotate
@@ -128,12 +131,21 @@ export default class ImageModel {
 			//移动区域的坐标
 			let moveX = this.x;
 			let moveY = this.y;
-			if (x - transformX >= 0 && y - transformY >= 0 && transformX + transformW - x >= 0 && transformY + transformH - y >= 0) {
+			//旋转
+			let rotateX = this.centerX, rotateY = this.centerY * 2 - this.y
+			let ratateAngle = Math.atan2(rotateY - this.centerY, rotateX - this.centerX) / Math.PI * 180 + this.rotate
+			let rotateXY = this.getTransform(rotateX, rotateY, ratateAngle);
+			rotateX = rotateXY.x, rotateY = rotateXY.y
+
+			if (x - scaleX >= 0 && y - scaleY >= 0 && scaleX + this._iconWidth - x >= 0 && scaleY + this._iconWidth - y >= 0) {
 				// 缩放区域
-				return "transform";
-			}else if (x - delX >= 0 && y - delY >= 0 && delX + delW - x >= 0 && delY + delH - y >= 0) {
+				return "scale";
+			}else if (x - delX >= 0 && y - delY >= 0 && delX + this._iconWidth - x >= 0 && delY + this._iconWidth - y >= 0) {
 				// 删除区域
 				return 'del'
+			}else if (x - rotateX >= 0 && y - rotateY >= 0 && rotateX + this._iconWidth - x >= 0 && rotateY + this._iconWidth - y >= 0) {
+				// 旋转
+				return "rotate";
 			}else if (x - moveX >= 0 && y - moveY >= 0 && moveX + this.w - x >= 0 && moveY + this.h - y >= 0) {
 				// 移动区域
 				return "move";
@@ -153,8 +165,8 @@ export default class ImageModel {
         var b = Math.cos(angle) * r;
         //目前的xy坐标是相对于图片中点为原点的坐标轴，而我们的主坐标轴是canvas的坐标轴，所以要加上中点的坐标值才是标准的canvas坐标
         return {
-					x: this.centerX + b - 12,
-					y: this.centerY + a - 12
+					x: this.centerX + b - this._iconWidth / 2,
+					y: this.centerY + a - this._iconWidth / 2                                                                                                                                                     / 2
         };
     }
 
