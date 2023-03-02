@@ -28,7 +28,13 @@ export default class ImageModel {
 
 		private _reload:boolean
 
+		private _leftRightMirror:number = 1
+
+		private _upDownMirror:number = 1
+
 		private _iconWidth:number = 24
+
+		private _startLoad:boolean = false
 
     constructor(src:string, ctx:CanvasRenderingContext2D){
 			//x y为初始坐标
@@ -38,9 +44,9 @@ export default class ImageModel {
 			this._image = new Image()
 			this._image.src = src
 			this._image.onload = () => {
-				this.w = this._image.width
-				this.h = this._image.height
-				this._ctx.drawImage(this._image, this.x, this.y, this._image.width, this._image.height);
+				this.w = this._image.width > 400 ? 400 : this._image.width
+				this.h = this._image.height > 400 ? 400 : this._image.width
+				this._ctx.drawImage(this._image, this.x, this.y, this.w, this.h);
 			}
 			this.rotate = 0;
 			this.selected = false;
@@ -67,6 +73,8 @@ export default class ImageModel {
      * 绘制图片
      */
     public paint() {
+				this._startLoad = false
+				this._ctx.restore()
         this._ctx.save();
         //计算图片中心的坐标，后续要用上
         this.centerX = this.x + this.w / 2;
@@ -75,16 +83,12 @@ export default class ImageModel {
         this._ctx.translate(this.centerX, this.centerY);
         //根据transform的旋转角度旋转坐标轴
         this._ctx.rotate(this.rotate * Math.PI / 180);
+				// 镜像
+				this._ctx.scale(this._leftRightMirror, this._upDownMirror)
         //变更回来
         this._ctx.translate(-this.centerX, -this.centerY);
         // 描述图片
 				if(!this._reload) this._ctx.drawImage(this._image, this.x, this.y, this.w, this.h);
-        const ScaleIcon = new Image()
-        ScaleIcon.src = "../../src/assets/icons/scale.png"
-        const CloseIcon = new Image()
-        CloseIcon.src = "../../src/assets/icons/close.png"
-        const RotateIcon = new Image()
-        RotateIcon.src = "../../src/assets/icons/rotate.png"
         // 如果是选中状态，绘制选择虚线框，和缩放图标、删除图标
         if (this.selected) {
           //对于canvas其他的描述api
@@ -93,19 +97,34 @@ export default class ImageModel {
           this._ctx.strokeStyle = "rgb(0, 110, 255)";
           this._ctx.lineDashOffset = 10;
           this._ctx.strokeRect(this.x, this.y, this.w, this.h);
-					ScaleIcon.onload = () => {
-						this._ctx.drawImage(ScaleIcon, this.x + this.w - 15, this.y + this.h - 15, this._iconWidth, this._iconWidth);
-					}
-					CloseIcon.onload = () => {
-						this._ctx.drawImage(CloseIcon, this.x - this._iconWidth / 2, this.y - this._iconWidth / 2, this._iconWidth, this._iconWidth)
-					}
-					RotateIcon.onload = () => {
-						this._ctx.drawImage(RotateIcon, this.centerX, this.centerY * 2 - this.y, this._iconWidth, this._iconWidth)
-					}
-					
+					this._startLoad = true
+					const ScaleIcon = this.loadImg("../../src/assets/icons/scale.png", this.x + this.w - 15, this.y + this.h - 15)
+					const CloseIcon = this.loadImg("../../src/assets/icons/close.png", this.x - this._iconWidth / 2, this.y - this._iconWidth / 2)
+					const RotateIcon = this.loadImg("../../src/assets/icons/rotate.png", this.centerX, this.centerY * 2 - this.y)
+					Promise.all([ScaleIcon, CloseIcon, RotateIcon]).then(res => {
+						this._ctx.restore()
+					})
         }
-        this._ctx.restore();
     }
+
+		/**
+		 * 加载图片
+		 */
+		loadImg(src:string, x:number, y:number) {
+			return new Promise((resolve, reject) => {
+				const img = new Image()
+				img.src = src
+				img.onload = () => {
+					if(this._startLoad) {
+						this._ctx.drawImage(img, x, y, this._iconWidth, this._iconWidth)
+						resolve(null)
+					}else {
+						reject("重新加载")
+					}
+				}
+			})
+
+		}
 
 		/**
 		 * 获取图片点击指令
@@ -169,5 +188,12 @@ export default class ImageModel {
 					y: this.centerY + a - this._iconWidth / 2                                                                                                                                                     / 2
         };
     }
+
+		public leftRightMirror() {
+			this._leftRightMirror = -this._leftRightMirror
+		}
+		public upDownMirror() {
+			this._upDownMirror = -this._upDownMirror
+		}
 
 }

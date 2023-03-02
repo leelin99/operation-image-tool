@@ -12,11 +12,17 @@
   -moz-osx-font-smoothing: grayscale;
   -webkit-text-size-adjust: 100%;
 }
-
+@font-face { 
+  font-family: 'myFont1'; 
+  src: url('./assets/style/汉仪雅酷黑-75.ttf') format('truetype');
+  font-weight: 600;
+  font-style: normal;
+}
 body, html{
   margin: 0;
   padding: 0;
   height: 100%;
+  font-family: 'myFont1';
 }
 
 #app {

@@ -1,14 +1,76 @@
 <template>
     <div class="drawArea">
         <canvas id="myCanvas" class="canvas" style="border:1px solid #000000;"> </canvas>
+        <el-dropdown  ref="dropdown" trigger="contextmenu">
+            <div class="rightKey" ref="rightKey"></div>
+            <template #dropdown>
+                <el-dropdown-menu v-for="item in rightKeyMenu" :key="item.id">
+                    <el-dropdown-item @click="handleCommand(item.id)">{{ item.key }}</el-dropdown-item>
+                </el-dropdown-menu>
+            </template>
+        </el-dropdown>
     </div>
+
 </template>
 
 <script setup lang="ts">
 import { useManageStore } from '@/store/index';
 import { onLoadImage } from '@/utils/index';
-import { onMounted } from 'vue';
+import { onMounted, Ref, ref } from 'vue';
+import {ElDropdown, ElMessage, ElImage} from "element-plus"
 import ImageModel from './image-model';
+const sources = []
+const selectMenu = []
+const dropdown = ref(null)
+enum MENU_CONST { LEFT_RIGHT_MIRROR, UP_DWON_MIRROR, UP, DOWN}
+const rightKeyMenu = [
+    {key:"左右镜像", id:MENU_CONST.LEFT_RIGHT_MIRROR},
+    {key:"上下镜像", id:MENU_CONST.UP_DWON_MIRROR},
+    {key:"向上移动一层", id:MENU_CONST.UP},
+    {key:"向下移动一层", id:MENU_CONST.DOWN}
+]
+const handleCommand = (command: string | number | object) => {
+    dropdown.value.handleClose()
+    if(!selectModel) return;
+    switch(command) {
+        case MENU_CONST.LEFT_RIGHT_MIRROR :
+            leftRightMirror()
+            break
+        case MENU_CONST.UP_DWON_MIRROR :
+            upDownMirror()
+            break
+        case MENU_CONST.UP :
+            up()
+            break
+        case MENU_CONST.DOWN :
+            down()
+            break
+        default:
+            break
+    }
+}
+function leftRightMirror() {
+    selectModel.leftRightMirror()
+    draw()
+}
+function upDownMirror() {
+    selectModel.upDownMirror()
+    draw()
+}
+
+function up() {
+    const index = modelsManage.findIndex(el => el === selectModel)
+    modelsManage.splice(index, 1)
+    modelsManage.splice(index + 1, 0, selectModel)
+    draw()
+}
+
+function down() {
+    const index = modelsManage.findIndex(el => el === selectModel)
+    modelsManage.splice(index, 1)
+    modelsManage.splice(index - 1, 0, selectModel)
+    draw()
+}
 
 let ctx:CanvasRenderingContext2D = null
 let clickedkArr:any[] = []
@@ -18,7 +80,9 @@ let initial:any = null
 let startTouch:any = null
 let canMove = false
 let { modelsManage, selectModel} = useManageStore()
-
+const props = defineProps({
+    selectedSrc:null
+})
 function draw () {
     ctx.clearRect(0, 0, canvas.width, canvas.height)
     modelsManage.forEach((item) => {
@@ -117,6 +181,7 @@ function move (e:MouseEvent) {
 function mouseOver(e:MouseEvent) {
     const x = e.clientX
     const y = e.clientY
+    if(!selectModel)return
     const place = selectModel.getImageOrder(x, y - canvas.offsetTop)
     if (place !== "false") {
         if (place === 'move') {
@@ -144,9 +209,11 @@ function changeImage() {
 function pushImage(src:string) {
     const item = new ImageModel(src, ctx)
     modelsManage.push(item)
+    debugger
     draw()
 }
 defineExpose({pushImage})
+let rightKey:Ref<HTMLElement> = ref(null)
 onMounted(() => {
     canvas = document.getElementById('myCanvas') as HTMLCanvasElement
     const { width, height } = window.screen
@@ -160,13 +227,33 @@ onMounted(() => {
         canMove = false;
         canvas.style.cursor = ""
     }
+    canvas.oncontextmenu = function(e:MouseEvent){
+     //点击右键后要执行的代码
+     dropdown.value.handleClose()
+     const x = e.clientX
+     const y = e.clientY
+     rightKey.value.style.left = x + "px"
+     rightKey.value.style.top = y + "px"
+     dropdown.value.handleOpen()
+     return false;//阻止浏览器的默认弹窗行为
+    }
+    // canvas.onmousedown = e => {
+    //     console.log(e.button)
+    // }
     ctx = canvas.getContext('2d')
+    canvas.addEventListener("dragover", e => {
+        pushImage(props.selectedSrc)
+    })
+
 })
+
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-
+.rightKey {
+    position: fixed;
+}
 #myCanvas {
     background-repeat: no-repeat;
     background-size: contain;
