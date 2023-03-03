@@ -13,7 +13,7 @@
         <div class="upload">
           <input type="file"
             accept="image/jpeg, image/png, image/jpg"
-            @input.prevent="changeImage($event)"
+            @input.prevent="$event => changeImage($event)"
             class="input-opacity"
             ref="inputImage"
             >
@@ -69,15 +69,18 @@ import { ElButton } from "element-plus"
 import request from "@/utils/request"
 const canvasDragRef = ref(null)
 let inputImage = ref(null)
-// function changeImage (e: Event) {
-//   const fileObj = new FileReader()
-//   fileObj.readAsDataURL((e.target as any).files[0]) 
-//   fileObj.onload = () => {
-//     canvasDragRef.value.pushImage(fileObj.result)
-//     if(inputImage.value)inputImage.value.value = ""
-//   }
-// }
+function changeImage (e: Event) {
+  // const fileObj = new FileReader()
+  // fileObj.readAsDataURL((e.target as any).files[0]) 
+  // fileObj.onload = () => {
+  //   canvasDragRef.value.pushImage(fileObj.result)
+  //   if(inputImage.value)inputImage.value.value = ""
+  // }
+}
+function handleCommand(id:number) {
 
+}
+let selectMenu = ref([])
 function uploadBg(e:Event) {
   const fileObj = new FileReader()
   fileObj.readAsDataURL((e.target as any).files[0])
