@@ -198,21 +198,18 @@ function mouseOver(e:MouseEvent) {
     }
 }
 
-function changeImage() {
+function changeImage(res:string) {
     if(!selectModel) return;
-    onLoadImage(res => {
-        selectModel.reLoadImg(res as string)
-        draw()
-    })
+    selectModel.changeSrc(res)
+    draw()
 }
 
 function pushImage(src:string) {
     const item = new ImageModel(src, ctx)
     modelsManage.push(item)
-    debugger
     draw()
 }
-defineExpose({pushImage})
+defineExpose({ pushImage, changeImage })
 let rightKey:Ref<HTMLElement> = ref(null)
 onMounted(() => {
     canvas = document.getElementById('myCanvas') as HTMLCanvasElement
@@ -241,10 +238,6 @@ onMounted(() => {
     //     console.log(e.button)
     // }
     ctx = canvas.getContext('2d')
-    canvas.addEventListener("dragend", e => {
-        pushImage(props.selectedSrc)
-    })
-
 })
 
 </script>

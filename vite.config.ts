@@ -4,7 +4,6 @@ import { resolve } from 'path'
 import AutoImport from 'unplugin-auto-import/vite'
 import Components from 'unplugin-vue-components/vite'
 import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
-console.log(process.env.NODE_ENV)
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
@@ -24,9 +23,14 @@ export default defineConfig({
     }
   },
   build: {
-    outDir:"./dist",
+    outDir:"./image-server/static/vueapp",
     target: "modules",
     assetsDir: 'assets',
     assetsInlineLimit: 360000
+  },
+  define:{
+    global:{
+      env:process.env.NODE_ENV
+    }
   }
 })

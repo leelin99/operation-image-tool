@@ -44,29 +44,39 @@ export default class ImageModel {
 			this._image = new Image()
 			this._image.src = src
 			this._image.onload = () => {
-				this.w = this._image.width > 400 ? 400 : this._image.width
-				this.h = this._image.height > 400 ? 400 : this._image.width
+				const W = 400;
+				const radio = Number((this._image.width / W).toFixed(0))
+				this.w = this._image.width / radio
+				this.h = this._image.height / radio
 				this._ctx.drawImage(this._image, this.x, this.y, this.w, this.h);
 			}
 			this.rotate = 0;
 			this.selected = false;
     }
 
+		public changeSrc(src:string) {
+			this.selected = false
+			this._image.src = src
+			this.reLoadImg(src)
+		}
+
 		/**
 		 * 重新加载图片
 		 * @param src 
 		 */
-		public reLoadImg(src:string) {
-			this._image = new Image()
-			this._image.src = src
-			this._reload = true
-			this.selected = false
-			this._image.onload = () => {
-				this.w = this._image.width
-				this.h = this._image.height
-				this._ctx.drawImage(this._image, this.x, this.y, this._image.width, this._image.height);
-				this._reload = false
-			}
+		public async reLoadImg() {
+			new Promise((resolve, reject) => {
+				this._reload = true
+				this._image.onload = () => {
+					const W = 400;
+					const radio = Number((this._image.width / W).toFixed(0))
+					this.w = this._image.width / radio
+					this.h = this._image.height / radio
+					this._ctx.drawImage(this._image, this.x, this.y, this.w, this.h);
+					this._reload = false
+					resolve(null)
+				}
+			})
 		}
 
     /**

@@ -53,6 +53,7 @@
                 class="sourceImage" 
                 :class="{'image-border': source.id == selectedId}" 
                 @click="clickImage(source.path, source.id)"
+                @dblclick="addImage"
                 :draggable="true"
                 ></el-image>
             </div>
@@ -73,7 +74,7 @@ function changeImage (e: Event) {
   // const fileObj = new FileReader()
   // fileObj.readAsDataURL((e.target as any).files[0]) 
   // fileObj.onload = () => {
-  //   canvasDragRef.value.pushImage(fileObj.result)
+  //   canvasDragRef.value.value.pushImage(fileObj.result)
   //   if(inputImage.value)inputImage.value.value = ""
   // }
 }
@@ -95,6 +96,7 @@ let selectedSrc:Ref<string> = ref(null)
 function clickImage(src:string, id:number) {
   selectedId.value = id
   selectedSrc.value = src
+  canvasDragRef.value.changeImage(src)
 }
 
 request({
@@ -105,6 +107,9 @@ request({
   sourceData.value = res.data.result
 })
 
+function addImage() {
+  canvasDragRef.value.pushImage(selectedSrc.value)
+}
 </script>
 
 <style  scoped>
