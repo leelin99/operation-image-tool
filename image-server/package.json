@@ -4,7 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "cross-env NODE_ENV=production nodemon --inspect ./bin/server.js",
+    "prod": "pm2 start ecosystem.config.js --env production"
   },
   "keywords": [],
   "author": "",
@@ -16,7 +18,9 @@
   "dependencies": {
     "@types/koa": "^2.13.5",
     "@types/node": "^18.14.4",
+    "cross-env": "^7.0.3",
     "koa": "^2.14.1",
+    "koa-static": "^5.0.0",
     "node-ts": "^5.1.2",
     "ts-node": "^10.9.1"
   }
