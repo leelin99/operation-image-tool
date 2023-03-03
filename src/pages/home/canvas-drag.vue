@@ -241,7 +241,7 @@ onMounted(() => {
     //     console.log(e.button)
     // }
     ctx = canvas.getContext('2d')
-    canvas.addEventListener("dragover", e => {
+    canvas.addEventListener("dragend", e => {
         pushImage(props.selectedSrc)
     })
 

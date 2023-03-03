@@ -1,4 +1,4 @@
-module.exports = async (ctx:any, next:any) => {
+module.exports = async (ctx, next) => {
   const content = 'application-type/json;charset=utf-8'
   ctx.set('Content-Type', content)
   ctx.set('Access-Control-Allow-Origin', "*")
