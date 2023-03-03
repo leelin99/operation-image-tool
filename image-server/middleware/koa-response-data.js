@@ -1,6 +1,6 @@
 const fs = require("fs")
 
-const baseUrl = "http://localhost:3001"
+const baseUrl = "http://39.108.236.220:3001"
 module.exports = async (ctx, next) => {
   const url = ctx.request.url.replace("/api", "")
   if(url === "/getImageList") {
