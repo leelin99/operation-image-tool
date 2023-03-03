@@ -29,6 +29,6 @@ export default defineConfig({
     assetsInlineLimit: 360000
   },
   define:{
-    ENV:process.env.NODE_ENV
+   "process.env":process.env
   }
 })
