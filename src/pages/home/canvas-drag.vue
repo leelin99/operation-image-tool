@@ -217,7 +217,6 @@ onMounted(() => {
     canvas.width = width * 0.75
     canvas.height = height * 0.90
     canvas.onmousedown = e => start(e)
-    canvas.ondblclick = e => changeImage()
     canvas.onmouseup = e => {
         canvas.removeEventListener("mousemove", move)
         document.onmouseup = null;

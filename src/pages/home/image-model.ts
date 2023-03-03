@@ -57,7 +57,7 @@ export default class ImageModel {
 		public changeSrc(src:string) {
 			this.selected = false
 			this._image.src = src
-			this.reLoadImg(src)
+			this.reLoadImg()
 		}
 
 		/**

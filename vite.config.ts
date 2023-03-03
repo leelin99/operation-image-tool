@@ -29,8 +29,6 @@ export default defineConfig({
     assetsInlineLimit: 360000
   },
   define:{
-    global:{
-      env:process.env.NODE_ENV
-    }
+    ENV:process.env.NODE_ENV
   }
 })
