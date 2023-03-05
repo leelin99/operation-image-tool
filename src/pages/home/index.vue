@@ -34,9 +34,9 @@
               </template>
             </el-image>
             <div class="right-nav-info">
-                <div>家具信息，xxxxxxxxxxx</div>
+                <div>家具信息:布员工椅 舒适皮质电脑椅抗压耐磨 可定制浙美家具</div>
                 <el-dropdown>
-                    <div>更换材质</div>
+                    <el-button>更换材质</el-button>
                     <template #dropdown>
                         <el-dropdown-menu v-for="item in selectMenu" :key="item.id">
                             <el-dropdown-item @click="handleCommand(item.id)">{{ item.key }}</el-dropdown-item>
@@ -81,7 +81,11 @@ function changeImage (e: Event) {
 function handleCommand(id:number) {
 
 }
-let selectMenu = ref([])
+let selectMenu = ref([
+  {key:'材质1', id:1},
+  {key:'材质2', id:2},
+  {key:'材质3', id:3}
+])
 function uploadBg(e:Event) {
   const fileObj = new FileReader()
   fileObj.readAsDataURL((e.target as any).files[0])
@@ -180,6 +184,7 @@ function addImage() {
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
+  justify-content: space-around;
   overflow-x: hidden;
   overflow-y: scroll;
   height: 70vh;
@@ -190,5 +195,10 @@ function addImage() {
 }
 .image-border {
   border: 1px solid #000;
+}
+.right-nav-info {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 </style>

@@ -108,9 +108,9 @@ export default class ImageModel {
           this._ctx.lineDashOffset = 10;
           this._ctx.strokeRect(this.x, this.y, this.w, this.h);
 					this._startLoad = true
-					const ScaleIcon = this.loadImg("../../src/assets/icons/scale.png", this.x + this.w - 15, this.y + this.h - 15)
-					const CloseIcon = this.loadImg("../../src/assets/icons/close.png", this.x - this._iconWidth / 2, this.y - this._iconWidth / 2)
-					const RotateIcon = this.loadImg("../../src/assets/icons/rotate.png", this.centerX, this.centerY * 2 - this.y)
+					const ScaleIcon = this.loadImg("/static/icons/scale.png", this.x + this.w - 15, this.y + this.h - 15)
+					const CloseIcon = this.loadImg("/static/icons/close.png", this.x - this._iconWidth / 2, this.y - this._iconWidth / 2)
+					const RotateIcon = this.loadImg("/static/icons/rotate.png", this.centerX, this.centerY * 2 - this.y)
 					Promise.all([ScaleIcon, CloseIcon, RotateIcon]).then(res => {
 						this._ctx.restore()
 					})

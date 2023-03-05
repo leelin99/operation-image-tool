@@ -102,6 +102,7 @@ function start (e:MouseEvent) {
         item.index = index
         // 先将所有的item的selected变为flase
         item.selected = false
+        selectModel = null
         if (place !== "false") {
             clickedkArr.push(item)
         }
