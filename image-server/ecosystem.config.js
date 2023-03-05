@@ -1,15 +1,14 @@
 module.exports = {
   apps: [{
     name: "node-server", // 应用名称
-    script: "./bin/server.js", // 启用的脚本地址
+    script: "./app.js", // 启用的脚本地址
     node_args: ['--inspect'], // 传递给节点可执行文件的参数
     env: { // 我的demo项目中不需要这个，就没有配置
       NODE_ENV: "production"
     },
     watch: [ // 监听 更新
-      "bin",
       "config",
-      "routers",
+      "route",
       "utils"
     ],
     ignore_watch: [ // 不监听的目录 

@@ -34,7 +34,11 @@ export default class ImageModel {
 
 		private _iconWidth:number = 24
 
-		private _startLoad:boolean = false
+		private _iconImgs = {
+			ScaleIcon:new Image(),
+			CloseIcon:new Image(),
+			RotateIcon:new Image()
+		}
 
     constructor(src:string, ctx:CanvasRenderingContext2D){
 			//x y为初始坐标
@@ -52,6 +56,9 @@ export default class ImageModel {
 			}
 			this.rotate = 0;
 			this.selected = false;
+			this._iconImgs.ScaleIcon.src = "/static/icons/scale.png"
+			this._iconImgs.CloseIcon.src = "/static/icons/close.png"
+			this._iconImgs.RotateIcon.src = "/static/icons/rotate.png"
     }
 
 		public changeSrc(src:string) {
@@ -83,9 +90,8 @@ export default class ImageModel {
      * 绘制图片
      */
     public paint() {
-				this._startLoad = false
 				this._ctx.restore()
-        this._ctx.save();
+        this._ctx.save()
         //计算图片中心的坐标，后续要用上
         this.centerX = this.x + this.w / 2;
         this.centerY = this.y + this.h / 2;
@@ -98,7 +104,7 @@ export default class ImageModel {
         //变更回来
         this._ctx.translate(-this.centerX, -this.centerY);
         // 描述图片
-				if(!this._reload) this._ctx.drawImage(this._image, this.x, this.y, this.w, this.h);
+				this._ctx.drawImage(this._image, this.x, this.y, this.w, this.h);
         // 如果是选中状态，绘制选择虚线框，和缩放图标、删除图标
         if (this.selected) {
           //对于canvas其他的描述api
@@ -107,33 +113,18 @@ export default class ImageModel {
           this._ctx.strokeStyle = "rgb(0, 110, 255)";
           this._ctx.lineDashOffset = 10;
           this._ctx.strokeRect(this.x, this.y, this.w, this.h);
-					this._startLoad = true
-					const ScaleIcon = this.loadImg("/static/icons/scale.png", this.x + this.w - 15, this.y + this.h - 15)
-					const CloseIcon = this.loadImg("/static/icons/close.png", this.x - this._iconWidth / 2, this.y - this._iconWidth / 2)
-					const RotateIcon = this.loadImg("/static/icons/rotate.png", this.centerX, this.centerY * 2 - this.y)
-					Promise.all([ScaleIcon, CloseIcon, RotateIcon]).then(res => {
-						this._ctx.restore()
-					})
+					this.loadImg(this._iconImgs.ScaleIcon, this.x + this.w - 15, this.y + this.h - 15)
+					this.loadImg(this._iconImgs.CloseIcon, this.x - this._iconWidth / 2, this.y - this._iconWidth / 2)
+					this.loadImg(this._iconImgs.RotateIcon, this.centerX, this.centerY * 2 - this.y)
+					this._ctx.restore()
         }
     }
 
 		/**
 		 * 加载图片
 		 */
-		loadImg(src:string, x:number, y:number) {
-			return new Promise((resolve, reject) => {
-				const img = new Image()
-				img.src = src
-				img.onload = () => {
-					if(this._startLoad) {
-						this._ctx.drawImage(img, x, y, this._iconWidth, this._iconWidth)
-						resolve(null)
-					}else {
-						reject("重新加载")
-					}
-				}
-			})
-
+		loadImg(img:HTMLImageElement, x:number, y:number) {
+			this._ctx.drawImage(img, x, y, this._iconWidth, this._iconWidth)
 		}
 
 		/**

@@ -16,9 +16,10 @@
 <script setup lang="ts">
 import { useManageStore } from '@/store/index';
 import { onLoadImage } from '@/utils/index';
-import { onMounted, Ref, ref } from 'vue';
+import { onMounted, Ref, ref, defineEmits } from 'vue';
 import {ElDropdown, ElMessage, ElImage} from "element-plus"
 import ImageModel from './image-model';
+const emits = defineEmits(["deleteImg"])
 const sources = []
 const selectMenu = []
 const dropdown = ref(null)
@@ -59,16 +60,18 @@ function upDownMirror() {
 }
 
 function up() {
-    const index = modelsManage.findIndex(el => el === selectModel)
+    const index = modelsManage.findIndex(el => el.img === selectModel)
+    const model = modelsManage[index]
     modelsManage.splice(index, 1)
-    modelsManage.splice(index + 1, 0, selectModel)
+    modelsManage.splice(index + 1, 0, model)
     draw()
 }
 
 function down() {
-    const index = modelsManage.findIndex(el => el === selectModel)
+    const index = modelsManage.findIndex(el => el.img === selectModel)
+    const model = modelsManage[index]
     modelsManage.splice(index, 1)
-    modelsManage.splice(index - 1, 0, selectModel)
+    modelsManage.splice(index - 1, 0, model)
     draw()
 }
 
@@ -86,7 +89,7 @@ const props = defineProps({
 function draw () {
     ctx.clearRect(0, 0, canvas.width, canvas.height)
     modelsManage.forEach((item) => {
-        item.paint()
+        item.img.paint()
     })
 }
 
@@ -97,14 +100,14 @@ function start (e:MouseEvent) {
     const x = e.clientX
     const y = e.clientY
     modelsManage.forEach((item, index) => {
-        const place = item.getImageOrder(x, y - canvas.offsetTop)
-        item.place = place
-        item.index = index
-        // 先将所有的item的selected变为flase
-        item.selected = false
+        const place = item.img.getImageOrder(x, y - canvas.offsetTop)
+        item.img.place = place
+        item.img.index = index
+        // 先将所有的item.img的selected变为flase
+        item.img.selected = false
         selectModel = null
         if (place !== "false") {
-            clickedkArr.push(item)
+            clickedkArr.push(item.img)
         }
     })
     const length = clickedkArr.length
@@ -202,12 +205,13 @@ function mouseOver(e:MouseEvent) {
 function changeImage(res:string) {
     if(!selectModel) return;
     selectModel.changeSrc(res)
+    selectModel = null
     draw()
 }
 
-function pushImage(src:string) {
-    const item = new ImageModel(src, ctx)
-    modelsManage.push(item)
+function pushImage(source:{name:string, id:number, path:string, [key:string]:any}) {
+    const item = new ImageModel(source.path, ctx)
+    modelsManage.push({img:item, name:source.name, id:source.id, price: source.price})
     draw()
 }
 defineExpose({ pushImage, changeImage })

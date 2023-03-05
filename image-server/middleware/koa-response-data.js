@@ -1,6 +1,7 @@
 const fs = require("fs")
 
-const baseUrl = "http://39.108.236.220:3001"
+const baseUrl = process.env.NODE_ENV === "development" ? "http://localhost:3001" : "http://39.108.236.220:3001"
+console.log(baseUrl)
 module.exports = async (ctx, next) => {
   const url = ctx.request.url.replace("/api", "")
   if(url === "/getImageList") {

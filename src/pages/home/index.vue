@@ -20,21 +20,21 @@
           上传本地素材图片
         </div>
         <div class="export">
-          <el-button>导出清单</el-button>
+          <el-button @click="exportList">导出清单</el-button>
         </div>
       </div>
     </div>
       <div class="right-nav">
         <div class="right-nav-top">
             <el-image class="right-nav-img" :src="selectedSrc" fit="contain">
-              <template #error>
+              <template #placeholder>
                 <div class="image-slot">
                   预览图
                 </div>
               </template>
             </el-image>
             <div class="right-nav-info">
-                <div>家具信息:布员工椅 舒适皮质电脑椅抗压耐磨 可定制浙美家具</div>
+                <div>家具信息:{{curSelInfo}}</div>
                 <el-dropdown>
                     <el-button>更换材质</el-button>
                     <template #dropdown>
@@ -46,38 +46,100 @@
             </div>
         </div>
         <content class="right-nav-content">
-            <div v-for="source in sourceData" :key="source.id">
+            <div v-for="source in sourceData" :key="source.id" class="right-nav-content-img">
                 <el-image 
                 :src="source.path" 
                 fit="contain" 
                 class="sourceImage" 
                 :class="{'image-border': source.id == selectedId}" 
-                @click="clickImage(source.path, source.id)"
-                @dblclick="addImage"
+                @click="clickImage(source)"
+                @dblclick="addImage(source)"
                 :draggable="true"
-                ></el-image>
+                loading = "lazy"
+                >
+                <template #placeholder>
+                  <div v-loading="true" class="image-slot">
+                  </div>
+                </template>
+                </el-image>
+                <div>{{ source.name }}</div>
+                <div>￥{{ source.price }}</div>
             </div>
         </content>
+        <el-pagination
+          small
+          background
+          layout="prev, pager, next"
+          :total="sourceData.length"
+          class="mt-4"
+        />
     </div>
+    <el-dialog v-model="dialogTableVisible" title="家居价格目录表">
+      <el-table :data="tableData">
+        <el-table-column property="家具名字" label="名称" width="150" />
+        <el-table-column property="价格" label="价格（￥）" width="200" />
+      </el-table>
+      <el-button @click="exportExcel">导出excel</el-button>
+    </el-dialog>
   </div>
   
 </template>
 
 <script lang="ts" setup>
-import { onMounted, reactive, Ref, ref } from 'vue';
+import { onMounted, reactive, ReactiveFlags, Ref, ref } from 'vue';
 import CanvasDrag from '@/pages/home/canvas-drag.vue';
-import { ElButton } from "element-plus"
+import { ElButton, ElMessage } from "element-plus"
 import request from "@/utils/request"
+import * as XLSX from 'xlsx' // Vue3 版本
+import { useManageStore } from '@/store';
+let { modelsManage } = useManageStore()
 const canvasDragRef = ref(null)
 let inputImage = ref(null)
 function changeImage (e: Event) {
-  // const fileObj = new FileReader()
-  // fileObj.readAsDataURL((e.target as any).files[0]) 
-  // fileObj.onload = () => {
-  //   canvasDragRef.value.value.pushImage(fileObj.result)
-  //   if(inputImage.value)inputImage.value.value = ""
-  // }
+  const formData = new FormData()
+  const files = (e.target as any).files
+  for(let file of files) {
+    formData.append("file", file)
+  }
+  request({
+    method:'post',
+    url:'/api/uploadImage',
+    data: formData
+  }).then(res => {
+    ElMessage({
+      message:res.data.msg,
+      type:'success'
+    })
+  })
 }
+let dialogTableVisible = ref(false)
+let tableData:Ref<{"家具名字":string, "价格": string}[]> = ref([])
+// 导出清单
+function exportList() {
+  if(!modelsManage.length)return
+
+  tableData.value = modelsManage.map(model => ({"家具名字":model.name, "价格": model.price}))
+  const total = tableData.value.reduce((pre, next) => {
+    return {'价格':String(Number(pre['价格']) + Number(next['价格'])), '家具名字': ''}
+  })
+  tableData.value.push({'家具名字':'', '价格':total['价格']})
+  dialogTableVisible.value = true
+}
+
+// 导出表格
+function exportExcel() {
+    // 创建工作表
+    const data = XLSX.utils.json_to_sheet(tableData.value)
+    // 创建工作簿
+    const wb = XLSX.utils.book_new()
+    // 将工作表放入工作簿中
+    XLSX.utils.book_append_sheet(wb, data, 'data')
+    // 生成文件并下载
+    XLSX.writeFile(wb, 'test.xlsx')
+}
+// 当前家具的信息
+const curSelInfo = ref("")
+
 function handleCommand(id:number) {
 
 }
@@ -97,22 +159,25 @@ function uploadBg(e:Event) {
 let sourceData = ref([])
 let selectedId:Ref<number> = ref(null)
 let selectedSrc:Ref<string> = ref(null)
-function clickImage(src:string, id:number) {
+
+// 点击图片
+function clickImage(source:{name:string, id:number, path:string, [key:string]:any}) {
+  const { name, id, path } = source
+  curSelInfo.value = name
   selectedId.value = id
-  selectedSrc.value = src
-  canvasDragRef.value.changeImage(src)
+  selectedSrc.value = path
+  canvasDragRef.value.changeImage(path)
 }
 
 request({
   method:"get",
-  url: "/getImageList"
+  url: "/api/getImageList"
 }).then(res => {
-  console.log(res.data, "data")
   sourceData.value = res.data.result
 })
 
-function addImage() {
-  canvasDragRef.value.pushImage(selectedSrc.value)
+function addImage(source:{name:string, price:string, [name:string]: any}) {
+  canvasDragRef.value.pushImage(source, selectedSrc.value)
 }
 </script>
 
@@ -143,8 +208,10 @@ function addImage() {
 .btn {
   display: flex;
   flex-direction: row;
-  width: 70%;
+  padding: 0 20px;
+  width: 100%;
   position: relative;
+  box-sizing: border-box;
 }
 .btn > div {
   width: 200px;
@@ -190,8 +257,8 @@ function addImage() {
   height: 70vh;
 }
 .sourceImage {
-  width: 200px;
-  height: 200px;
+  width: 150px;
+  height: 150px;
 }
 .image-border {
   border: 1px solid #000;
@@ -200,5 +267,17 @@ function addImage() {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+}
+.image-slot {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+}
+.right-nav-content-img{
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
 }
 </style>

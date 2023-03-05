@@ -3,7 +3,7 @@ import { defineStore } from "pinia";
 
 interface IManageStrore {
     selectModel:ImageModel,
-    modelsManage:ImageModel[]
+    modelsManage:{img:ImageModel, name:string, id:number, price:string}[]
 }
 
 export const useManageStore= defineStore<string, IManageStrore>(
