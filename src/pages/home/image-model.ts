@@ -49,7 +49,7 @@ export default class ImageModel {
 			this._image.src = src
 			this._image.onload = () => {
 				const W = 400;
-				const radio = Number((this._image.width / W).toFixed(0))
+				const radio = Math.ceil((this._image.width / W))
 				this.w = this._image.width / radio
 				this.h = this._image.height / radio
 				this._ctx.drawImage(this._image, this.x, this.y, this.w, this.h);
@@ -103,8 +103,13 @@ export default class ImageModel {
 				this._ctx.scale(this._leftRightMirror, this._upDownMirror)
         //变更回来
         this._ctx.translate(-this.centerX, -this.centerY);
-        // 描述图片
 				this._ctx.drawImage(this._image, this.x, this.y, this.w, this.h);
+				// 变更原点至图片的中点
+				this._ctx.translate(this.centerX, this.centerY);
+				this._ctx.scale(this._leftRightMirror, this._upDownMirror)
+				//变更回来
+				this._ctx.translate(-this.centerX, -this.centerY);
+        // 描述图片
         // 如果是选中状态，绘制选择虚线框，和缩放图标、删除图标
         if (this.selected) {
           //对于canvas其他的描述api
@@ -116,6 +121,7 @@ export default class ImageModel {
 					this.loadImg(this._iconImgs.ScaleIcon, this.x + this.w - 15, this.y + this.h - 15)
 					this.loadImg(this._iconImgs.CloseIcon, this.x - this._iconWidth / 2, this.y - this._iconWidth / 2)
 					this.loadImg(this._iconImgs.RotateIcon, this.centerX, this.centerY * 2 - this.y)
+					this._ctx.rotate(-this.rotate * Math.PI / 180);
 					this._ctx.restore()
         }
     }

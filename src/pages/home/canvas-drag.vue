@@ -218,9 +218,10 @@ defineExpose({ pushImage, changeImage })
 let rightKey:Ref<HTMLElement> = ref(null)
 onMounted(() => {
     canvas = document.getElementById('myCanvas') as HTMLCanvasElement
-    const { width, height } = window.screen
-    canvas.width = width * 0.75
-    canvas.height = height * 0.90
+    const width = document.documentElement.clientWidth
+    const height = document.documentElement.clientHeight
+    canvas.width = width * 0.6
+    canvas.height = height * 0.78
     canvas.onmousedown = e => start(e)
     canvas.onmouseup = e => {
         canvas.removeEventListener("mousemove", move)
@@ -254,5 +255,6 @@ onMounted(() => {
 #myCanvas {
     background-repeat: no-repeat;
     background-size: contain;
+    background-image: url("../../assets/image/background.jpg");
 }
 </style>

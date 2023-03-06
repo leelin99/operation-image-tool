@@ -116,8 +116,12 @@ let dialogTableVisible = ref(false)
 let tableData:Ref<{"家具名字":string, "价格": string}[]> = ref([])
 // 导出清单
 function exportList() {
-  if(!modelsManage.length)return
-
+  if(!modelsManage.length){ 
+    ElMessage({
+      message: "场景无家居"
+    })
+    return 
+  }
   tableData.value = modelsManage.map(model => ({"家具名字":model.name, "价格": model.price}))
   const total = tableData.value.reduce((pre, next) => {
     return {'价格':String(Number(pre['价格']) + Number(next['价格'])), '家具名字': ''}
@@ -212,6 +216,7 @@ function addImage(source:{name:string, price:string, [name:string]: any}) {
   width: 100%;
   position: relative;
   box-sizing: border-box;
+  margin-top: 30px;
 }
 .btn > div {
   width: 200px;
