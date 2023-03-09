@@ -20,34 +20,34 @@
           上传本地素材图片
         </div>
         <div class="export">
-          <el-button @click="exportList">导出清单</el-button>
+          <vant-button @click="exportList">导出清单</vant-button>
         </div>
       </div>
     </div>
       <div class="right-nav">
         <div class="right-nav-top">
-            <el-image class="right-nav-img" :src="selectedSrc" fit="contain">
+            <vant-image class="right-nav-img" :src="selectedSrc" fit="contain">
               <template #placeholder>
                 <div class="image-slot">
                   预览图
                 </div>
               </template>
-            </el-image>
+            </vant-image>
             <div class="right-nav-info">
                 <div>家具信息:{{curSelInfo}}</div>
-                <el-dropdown>
-                    <el-button>更换材质</el-button>
+                <vant-dropdown>
+                    <vant-button>更换材质</vant-button>
                     <template #dropdown>
-                        <el-dropdown-menu v-for="item in selectMenu" :key="item.id">
-                            <el-dropdown-item @click="handleCommand(item.id)">{{ item.key }}</el-dropdown-item>
-                        </el-dropdown-menu>
+                        <vant-dropdown-menu v-for="item in selectMenu" :key="item.id">
+                            <vant-dropdown-item @click="handleCommand(item.id)">{{ item.key }}</vant-dropdown-item>
+                        </vant-dropdown-menu>
                     </template>
-                </el-dropdown>
+                </vant-dropdown>
             </div>
         </div>
         <content class="right-nav-content">
             <div v-for="source in sourceData" :key="source.id" class="right-nav-content-img">
-                <el-image 
+                <vant-image 
                 :src="source.path" 
                 fit="contain" 
                 class="sourceImage" 
@@ -61,12 +61,12 @@
                   <div v-loading="true" class="image-slot">
                   </div>
                 </template>
-                </el-image>
+                </vant-image>
                 <div>{{ source.name }}</div>
                 <div>￥{{ source.price }}</div>
             </div>
         </content>
-        <el-pagination
+        <vant-pagination
           small
           background
           layout="prev, pager, next"
@@ -74,19 +74,19 @@
           class="mt-4"
         />
     </div>
-    <el-dialog v-model="dialogTableVisible" title="家居价格目录表">
-      <el-table :data="tableData">
-        <el-table-column property="家具名字" label="名称" width="150" />
-        <el-table-column property="价格" label="价格（￥）" width="200" />
-      </el-table>
-      <el-button @click="exportExcel">导出excel</el-button>
-    </el-dialog>
+    <vant-dialog v-model="dialogTableVisible" title="家居价格目录表">
+      <vant-table :data="tableData">
+        <vant-table-column property="家具名字" label="名称" width="150" />
+        <vant-table-column property="价格" label="价格（￥）" width="200" />
+      </vant-table>
+      <vant-button @click="exportExcel">导出excel</vant-button>
+    </vant-dialog>
   </div>
   
 </template>
 
 <script lang="ts" setup>
-import { onMounted, reactive, ReactiveFlags, Ref, ref } from 'vue';
+import { Ref, ref } from 'vue';
 import CanvasDrag from '@/pages/home/canvas-drag.vue';
 import { ElButton, ElMessage } from "element-plus"
 import request from "@/utils/request"
