@@ -1,14 +1,14 @@
 <template>
     <div class="drawArea">
         <canvas id="myCanvas" class="canvas" style="border:1px solid #000000;"> </canvas>
-        <vant-dropdown  ref="dropdown" trigger="contextmenu">
+        <el-dropdown  ref="dropdown" trigger="contextmenu">
             <div class="rightKey" ref="rightKey"></div>
             <template #dropdown>
-                <vant-dropdown-menu v-for="item in rightKeyMenu" :key="item.id">
-                    <vant-dropdown-item @click="handleCommand(item.id)">{{ item.key }}</vant-dropdown-item>
-                </vant-dropdown-menu>
+                <el-dropdown-menu v-for="item in rightKeyMenu" :key="item.id">
+                    <el-dropdown-item @click="handleCommand(item.id)">{{ item.key }}</el-dropdown-item>
+                </el-dropdown-menu>
             </template>
-        </vant-dropdown>
+        </el-dropdown>
     </div>
 
 </template>

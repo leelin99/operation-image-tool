@@ -3,9 +3,11 @@ import './style.css'
 import App from './App.vue'
 import ImageModel from './pages/home/image-model';
 import { createPinia } from 'pinia';
-import ElementPlus from 'element-plus'
+import { Lazyload } from 'vant';
 import 'lib-flexible/flexible.js'
-import 'element-plus/dist/index.css'
 const app = createApp(App);
+app.use(Lazyload, {
+  lazyComponent: true,
+});
 app.use(createPinia())
 app.mount('#app')

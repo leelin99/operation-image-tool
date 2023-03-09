@@ -3,51 +3,40 @@
     <div class="left-content">
       <canvas-drag ref="canvasDragRef" :selectedSrc="selectedSrc"> </canvas-drag>
       <div class="btn">
-        <div class="upload">
-        <input type="file"
-          accept="image/jpeg, image/png, image/jpg"
-          @input.prevent="uploadBg($event)"
-          class="input-opacity">
-        上传背景图
+        <div class="uploadBtn">
+          <van-uploader accept="image/jpeg, image/png, image/jpg" class="upload" :before-read='beforeRead' :after-read="uploadBg" :multiple="false">
+            <van-button size='mini' icon="plus" type="primary" class="input-opacity">
+            上传背景图
+            </van-button>
+          </van-uploader>
+          <van-uploader accept="image/jpeg, image/png, image/jpg" class="upload" :before-read='beforeRead' :after-read="changeImage" :multiple="true">
+            <van-button size='mini' icon="plus" type="primary"  class="input-opacity" ref="inputImage">
+              上传本地素材图片
+            </van-button>
+          </van-uploader>
         </div>
-        <div class="upload">
-          <input type="file"
-            accept="image/jpeg, image/png, image/jpg"
-            @input.prevent="$event => changeImage($event)"
-            class="input-opacity"
-            ref="inputImage"
-            >
-          上传本地素材图片
-        </div>
+
         <div class="export">
-          <vant-button @click="exportList">导出清单</vant-button>
+          <van-button @click="exportList" size='mini'>导出清单</van-button>
         </div>
       </div>
     </div>
-      <div class="right-nav">
-        <div class="right-nav-top">
-            <vant-image class="right-nav-img" :src="selectedSrc" fit="contain">
-              <template #placeholder>
-                <div class="image-slot">
-                  预览图
-                </div>
-              </template>
-            </vant-image>
-            <div class="right-nav-info">
-                <div>家具信息:{{curSelInfo}}</div>
-                <vant-dropdown>
-                    <vant-button>更换材质</vant-button>
-                    <template #dropdown>
-                        <vant-dropdown-menu v-for="item in selectMenu" :key="item.id">
-                            <vant-dropdown-item @click="handleCommand(item.id)">{{ item.key }}</vant-dropdown-item>
-                        </vant-dropdown-menu>
-                    </template>
-                </vant-dropdown>
-            </div>
-        </div>
-        <content class="right-nav-content">
-            <div v-for="source in sourceData" :key="source.id" class="right-nav-content-img">
-                <vant-image 
+    <div class="right-nav">
+      <div class="right-nav-top">
+          <van-image class="right-nav-img" :src="selectedSrc" fit="contain">
+            <template #placeholder>
+              <div class="image-slot">
+                预览图
+              </div>
+            </template>
+          </van-image>
+          <div class="right-nav-info">
+              <div>家具信息:{{curSelInfo}}</div>
+          </div>
+      </div>
+      <content class="right-nav-content">
+          <div v-for="source in sourceData" :key="source.id" class="right-nav-content-img">
+              <van-image 
                 :src="source.path" 
                 fit="contain" 
                 class="sourceImage" 
@@ -55,63 +44,38 @@
                 @click="clickImage(source)"
                 @dblclick="addImage(source)"
                 :draggable="true"
-                loading = "lazy"
-                >
+              >
                 <template #placeholder>
                   <div v-loading="true" class="image-slot">
                   </div>
                 </template>
-                </vant-image>
-                <div>{{ source.name }}</div>
-                <div>￥{{ source.price }}</div>
-            </div>
-        </content>
-        <vant-pagination
-          small
-          background
-          layout="prev, pager, next"
-          :total="sourceData.length"
-          class="mt-4"
-        />
+              </van-image>
+              <div>{{ source.name }}</div>
+              <div>￥{{ source.price }}</div>
+          </div>
+      </content>
     </div>
-    <vant-dialog v-model="dialogTableVisible" title="家居价格目录表">
-      <vant-table :data="tableData">
-        <vant-table-column property="家具名字" label="名称" width="150" />
-        <vant-table-column property="价格" label="价格（￥）" width="200" />
-      </vant-table>
-      <vant-button @click="exportExcel">导出excel</vant-button>
-    </vant-dialog>
+    <!-- <el-dialog v-model="dialogTableVisible" title="家居价格目录表">
+      <el-table :data="tableData">
+        <el-table-column property="家具名字" label="名称" width="150" />
+        <el-table-column property="价格" label="价格（￥）" width="200" />
+      </el-table>
+      <el-button @click="exportExcel">导出excel</el-button>
+    </el-dialog> -->
   </div>
   
 </template>
 
 <script lang="ts" setup>
-import { Ref, ref } from 'vue';
+import { onMounted, reactive, ReactiveFlags, Ref, ref } from 'vue';
 import CanvasDrag from '@/pages/home/canvas-drag.vue';
 import { ElButton, ElMessage } from "element-plus"
 import request from "@/utils/request"
 import * as XLSX from 'xlsx' // Vue3 版本
 import { useManageStore } from '@/store';
+import { showToast, UploaderFileListItem } from 'vant';
 let { modelsManage } = useManageStore()
 const canvasDragRef = ref(null)
-let inputImage = ref(null)
-function changeImage (e: Event) {
-  const formData = new FormData()
-  const files = (e.target as any).files
-  for(let file of files) {
-    formData.append("file", file)
-  }
-  request({
-    method:'post',
-    url:'/api/uploadImage',
-    data: formData
-  }).then(res => {
-    ElMessage({
-      message:res.data.msg,
-      type:'success'
-    })
-  })
-}
 let dialogTableVisible = ref(false)
 let tableData:Ref<{"家具名字":string, "价格": string}[]> = ref([])
 // 导出清单
@@ -152,13 +116,49 @@ let selectMenu = ref([
   {key:'材质2', id:2},
   {key:'材质3', id:3}
 ])
-function uploadBg(e:Event) {
+const imageForm = ['image/jpeg', 'image/png', 'image/jpg']
+/** 上传前做检查*/
+const beforeRead = (files:File | File[]) => {
+  if(files instanceof Array) {
+    for(let file of files) {
+      if (!imageForm.includes(file.type)) {
+        showToast('请上传 jpg 、jpeg、png格式图片');
+        return false;
+      }
+    }
+  }else if(files instanceof File) {
+    if (!imageForm.includes(files.type)) {
+      showToast('请上传 jpg 、jpeg、png格式图片');
+      return false;
+    }
+  }
+  return true;
+};
+function uploadBg(fileListItem:UploaderFileListItem) {
   const fileObj = new FileReader()
-  fileObj.readAsDataURL((e.target as any).files[0])
+  fileObj.readAsDataURL(fileListItem.file)
   fileObj.onload = () => {
     const canvas = document.getElementById('myCanvas') as HTMLCanvasElement
     canvas.style.backgroundImage = `url(${fileObj.result})` 
   }
+}
+
+let inputImage = ref(null)
+function changeImage (fileListItemList:UploaderFileListItem[]) {
+  const formData = new FormData()
+  for(let UploaderFile of fileListItemList) {
+    formData.append("file", UploaderFile.file)
+  }
+  request({
+    method:'post',
+    url:'/api/uploadImage',
+    data: formData
+  }).then(res => {
+    ElMessage({
+      message:res.data.msg,
+      type:'success'
+    })
+  })
 }
 let sourceData = ref([])
 let selectedId:Ref<number> = ref(null)
@@ -186,103 +186,28 @@ function addImage(source:{name:string, price:string, [name:string]: any}) {
 </script>
 
 <style  scoped>
-.wrap {
-  width: 100%;
-  height: 100%;
-}
-.upload {
-  position: relative;
-  width: 100%;
-  height: 35px;
+.main {
   display: flex;
-  justify-content: center;
-  align-items: center;
-  color: #fff;
-  font-weight: 800;
-  border-radius: 50px;
-  background-color: rgb(0, 110, 255);
 }
-.input-opacity {
-  position: absolute;
-  top: 0;
-  width: 100%;
-  height: 35px;
-  opacity: 0;
+.left-content {
+  width: 60%;
+  height: 100%;
 }
 .btn {
   display: flex;
-  flex-direction: row;
-  padding: 0 20px;
-  width: 100%;
-  position: relative;
-  box-sizing: border-box;
-  margin-top: 30px;
-}
-.btn > div {
-  width: 200px;
-  margin-right: 20px;
-}
-.export button{
-  position: absolute;
-  right: 0;
-}
-.main {
-  display: flex;
-  flex-direction: row;
-}
-.right-nav {
-    display: flex;
-    flex-direction: column;
-    width: 30%;
-    flex: 1;
-    height: 100%;
-    border:1px solid #999;
-}
-.right-nav .right-nav-top {
-    display: flex;
-    flex-direction: row;
-}
-.right-nav .right-nav-bottom {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-}
-.right-nav .right-nav-img {
-  width: 200px;
-  height: 200px;
-  border: 1px solid #000;
-}
-.right-nav-content {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  justify-content: space-around;
-  overflow-x: hidden;
-  overflow-y: scroll;
-  height: 70vh;
-}
-.sourceImage {
-  width: 150px;
-  height: 150px;
-}
-.image-border {
-  border: 1px solid #000;
-}
-.right-nav-info {
-  display: flex;
-  flex-direction: column;
   justify-content: space-between;
 }
-.image-slot {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100%;
+.upload {
+  margin-right: 30px;
 }
-.right-nav-content-img{
+.left-content {
+  flex: 1;
+}
+.right-nav-top {
+  width: 100%;
   display: flex;
-  flex-direction: column;
-  justify-content: center;
-  text-align: center;
+}
+.right-nav-img {
+  width: 50%;
 }
 </style>
