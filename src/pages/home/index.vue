@@ -163,9 +163,9 @@ const beforeRead = (files:File | File[]) => {
  * 加载背景
  * @param fileListItem 
  */
-function uploadBg(fileListItem:UploaderFileListItem) {
+function uploadBg(fileListItem:UploaderFileListItem | UploaderFileListItem[]) {
   const fileObj = new FileReader()
-  fileObj.readAsDataURL(fileListItem.file)
+  fileObj.readAsDataURL((fileListItem as UploaderFileListItem).file)
   fileObj.onload = () => {
     const canvas = document.getElementById('myCanvas') as HTMLCanvasElement
     canvas.style.backgroundImage = `url(${fileObj.result})` 
@@ -173,11 +173,9 @@ function uploadBg(fileListItem:UploaderFileListItem) {
 }
 
 let inputImage = ref(null)
-function changeImage (fileListItemList:UploaderFileListItem[]) {
+function changeImage (fileListItem: UploaderFileListItem | UploaderFileListItem[]) {
   const formData = new FormData()
-  for(let UploaderFile of fileListItemList) {
-    formData.append("file", UploaderFile.file)
-  }
+  formData.append("file", (fileListItem as UploaderFileListItem).file)
   request({
     method:'post',
     url:'/api/uploadImage',

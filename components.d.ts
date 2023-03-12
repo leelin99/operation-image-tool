@@ -12,18 +12,8 @@ declare module '@vue/runtime-core' {
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     VanActionSheet: typeof import('vant/es')['ActionSheet']
-    VanButton: typeof import('vant/es')['Button']
-    VanCell: typeof import('vant/es')['Cell']
-    VanDialog: typeof import('vant/es')['Dialog']
-    VanDropdown: typeof import('vant/es')['Dropdown']
-    VanDropdownItem: typeof import('vant/es')['DropdownItem']
-    VanDropdownMenu: typeof import('vant/es')['DropdownMenu']
     VanIcon: typeof import('vant/es')['Icon']
     VanImage: typeof import('vant/es')['Image']
-    VanPagination: typeof import('vant/es')['Pagination']
-    VanTable: typeof import('vant/es')['Table']
-    VanTableColumn: typeof import('vant/es')['TableColumn']
-    VantButton: typeof import('vant/es')['tButton']
     VanUploader: typeof import('vant/es')['Uploader']
   }
 }

@@ -20,4 +20,4 @@ app.use(koaBody({
 app.use(router.routes())
 app.use(router.allowedMethods())
 app.use(koaStatic(path.join(__dirname, "./static")))
-app.listen(3001)
+app.listen(3002)

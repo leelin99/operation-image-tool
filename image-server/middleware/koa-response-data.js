@@ -1,13 +1,11 @@
 const fs = require("fs")
-const imageList = require("../image-list.json")
-const baseUrl = process.env.NODE_ENV === "development" ? "http://localhost:3001" : "http://39.108.236.220:3001"
+const baseUrl = process.env.NODE_ENV === "development" ? "http://localhost:3002" : "http://39.108.236.220:3002"
 console.log(baseUrl)
 module.exports = async (ctx, next) => {
   const url = ctx.request.url.replace("/api", "")
   if(url === "/getImageList") {
     const path = require("url")
-    console.log(fileArr, "fileArr")
-    const fileArr = JSON.parse(imageList).map(img => img.value[0])
+
     const result = fileArr.map((file, index) => {
       return {
         path: `${baseUrl}/image/${file}`,

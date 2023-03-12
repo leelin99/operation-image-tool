@@ -17,7 +17,7 @@ export function onLoadImage(callback:(res:string | ArrayBuffer)=>void) {
 }
 
 export function longClick(target:HTMLElement, callback:(ev:TouchEvent) => void) {
-    target.onmousedown = (ev:MouseEvent) => {
+    target.ontouchstart = (ev:TouchEvent) => {
         const timer = setTimeout(() => {
             callback(ev)
         },500)

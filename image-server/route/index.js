@@ -2,7 +2,7 @@ const Router = require('koa-router')
 const fs = require("fs")
 const imageList = require("../image-list.json")
 const router = new Router()
-const baseUrl = process.env.NODE_ENV === "development" ? "http://localhost:3001" : "http://39.108.236.220:3001"
+const baseUrl = process.env.NODE_ENV === "development" ? "http://localhost:3002" : "http://39.108.236.220:3002"
 
 router.get("/", async (ctx) => {
    ctx.type = "html"
