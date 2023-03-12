@@ -1,37 +1,31 @@
 <template>
     <div class="drawArea">
         <canvas id="myCanvas" class="canvas" style="border:1px solid #000000;"> </canvas>
-        <el-dropdown  ref="dropdown" trigger="contextmenu">
-            <div class="rightKey" ref="rightKey"></div>
-            <template #dropdown>
-                <el-dropdown-menu v-for="item in rightKeyMenu" :key="item.id">
-                    <el-dropdown-item @click="handleCommand(item.id)">{{ item.key }}</el-dropdown-item>
-                </el-dropdown-menu>
-            </template>
-        </el-dropdown>
+        <van-action-sheet v-model:show="showAction" :actions="rightKeyMenu" @select="onSelect" close-on-click-action/>
     </div>
 
 </template>
 
 <script setup lang="ts">
 import { useManageStore } from '@/store/index';
-import { onLoadImage } from '@/utils/index';
 import { onMounted, Ref, ref, defineEmits } from 'vue';
-import {ElDropdown, ElMessage, ElImage} from "element-plus"
 import ImageModel from './image-model';
 const emits = defineEmits(["deleteImg"])
 const sources = []
 const selectMenu = []
 const dropdown = ref(null)
+let showAction = ref(false)
 enum MENU_CONST { LEFT_RIGHT_MIRROR, UP_DWON_MIRROR, UP, DOWN}
 const rightKeyMenu = [
-    {key:"左右镜像", id:MENU_CONST.LEFT_RIGHT_MIRROR},
-    {key:"上下镜像", id:MENU_CONST.UP_DWON_MIRROR},
-    {key:"向上移动一层", id:MENU_CONST.UP},
-    {key:"向下移动一层", id:MENU_CONST.DOWN}
+    {name:"左右镜像", value:MENU_CONST.LEFT_RIGHT_MIRROR},
+    {name:"上下镜像", value:MENU_CONST.UP_DWON_MIRROR},
+    {name:"向上移动一层", value:MENU_CONST.UP},
+    {name:"向下移动一层", value:MENU_CONST.DOWN}
 ]
+const onSelect = (item:{name:string, value:number}) => {
+    handleCommand(item.value)
+}
 const handleCommand = (command: string | number | object) => {
-    dropdown.value.handleClose()
     if(!selectModel) return;
     switch(command) {
         case MENU_CONST.LEFT_RIGHT_MIRROR :
@@ -93,12 +87,12 @@ function draw () {
     })
 }
 
-function start (e:MouseEvent) {
+function start (e:TouchEvent) {
     canMove = true
     // 初始化一个数组用于存放所有被点击到的图片对象
     clickedkArr = []
-    const x = e.clientX
-    const y = e.clientY
+    const x = e.targetTouches[0].clientX
+    const y = e.targetTouches[0].clientY
     modelsManage.forEach((item, index) => {
         const place = item.img.getImageOrder(x, y - canvas.offsetTop)
         item.img.place = place
@@ -136,14 +130,15 @@ function start (e:MouseEvent) {
     draw()
     // 保存点击的坐标，move时要用
     startTouch = { startX: x, startY: y }
-    canvas.addEventListener("mousemove", move)
-    canvas.addEventListener("mousemove", mouseOver)
+    canvas.addEventListener("touchmove", move)
+    canvas.addEventListener("touchmove", touchend)
 }
 
-function move (e:MouseEvent) {
+function move (e:TouchEvent) {
+    e.preventDefault()
     if(!canMove) return
-    const x = e.clientX
-    const y = e.clientY
+    const x = e.targetTouches[0].clientX
+    const y = e.targetTouches[0].clientY
     const { initialX, initialY } = initial
     const { startX, startY } = startTouch
     const { centerX, centerY } = lastImg
@@ -182,9 +177,10 @@ function move (e:MouseEvent) {
     }
 }
 
-function mouseOver(e:MouseEvent) {
-    const x = e.clientX
-    const y = e.clientY
+function touchend(e:TouchEvent) {
+    e.preventDefault()
+    const x = e.targetTouches[0].clientX
+    const y = e.targetTouches[0].clientY
     if(!selectModel)return
     const place = selectModel.getImageOrder(x, y - canvas.offsetTop)
     if (place !== "false") {
@@ -214,7 +210,12 @@ function pushImage(source:{name:string, id:number, path:string, [key:string]:any
     modelsManage.push({img:item, name:source.name, id:source.id, price: source.price})
     draw()
 }
-defineExpose({ pushImage, changeImage })
+function showEdit() {
+    if(!selectModel) return;
+    showAction.value = true
+}
+
+defineExpose({ pushImage, changeImage, showEdit })
 let rightKey:Ref<HTMLElement> = ref(null)
 onMounted(() => {
     canvas = document.getElementById('myCanvas') as HTMLCanvasElement
@@ -222,24 +223,18 @@ onMounted(() => {
     const height = document.documentElement.clientHeight
     canvas.width = width * 0.6
     canvas.height = height * 0.78
-    canvas.onmousedown = e => start(e)
-    canvas.onmouseup = e => {
-        canvas.removeEventListener("mousemove", move)
-        document.onmouseup = null;
+    canvas.ontouchstart = e => start(e)
+    canvas.ontouchend = e => {
+        e.preventDefault()
+        canvas.removeEventListener("touchmove", move)
+        document.ontouchend = null;
         canMove = false;
         canvas.style.cursor = ""
     }
-    canvas.oncontextmenu = function(e:MouseEvent){
-     //点击右键后要执行的代码
-     dropdown.value.handleClose()
-     const x = e.clientX
-     const y = e.clientY
-     rightKey.value.style.left = x + "px"
-     rightKey.value.style.top = y + "px"
-     dropdown.value.handleOpen()
-     return false;//阻止浏览器的默认弹窗行为
-    }
-    // canvas.onmousedown = e => {
+    canvas.addEventListener("tap", () => {
+        debugger
+    })
+    // canvas.ontouchstart = e => {
     //     console.log(e.button)
     // }
     ctx = canvas.getContext('2d')
@@ -254,7 +249,7 @@ onMounted(() => {
 }
 #myCanvas {
     background-repeat: no-repeat;
-    background-size: contain;
+    background-size: 100% 100%;
     background-image: url("../../assets/image/background.jpg");
 }
 </style>

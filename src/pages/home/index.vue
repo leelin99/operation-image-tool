@@ -4,20 +4,37 @@
       <canvas-drag ref="canvasDragRef" :selectedSrc="selectedSrc"> </canvas-drag>
       <div class="btn">
         <div class="uploadBtn">
-          <van-uploader accept="image/jpeg, image/png, image/jpg" class="upload" :before-read='beforeRead' :after-read="uploadBg" :multiple="false">
-            <van-button size='mini' icon="plus" type="primary" class="input-opacity">
-            上传背景图
-            </van-button>
-          </van-uploader>
-          <van-uploader accept="image/jpeg, image/png, image/jpg" class="upload" :before-read='beforeRead' :after-read="changeImage" :multiple="true">
-            <van-button size='mini' icon="plus" type="primary"  class="input-opacity" ref="inputImage">
-              上传本地素材图片
-            </van-button>
-          </van-uploader>
+          <div>
+            <van-uploader accept="image/jpeg, image/png, image/jpg" class="upload" :before-read='beforeRead' :after-read="uploadBg" :multiple="false">
+              <van-icon name="back-top" size="20px"  />
+              <span>上传背景图</span>
+              <!-- <van-button size='mini' icon="plus" type="primary" class="input-opacity">
+              上传背景图
+              </van-button> -->
+            </van-uploader>
+          </div>
+          <div>
+            <van-uploader accept="image/jpeg, image/png, image/jpg" class="upload" :before-read='beforeRead' :after-read="changeImage" :multiple="true">
+              <van-icon  name="plus" size="20px"  />
+              <span>上传本地素材图片</span>
+              <!-- <van-button size='mini' icon="plus" type="success"  class="input-opacity" ref="inputImage">
+                上传本地素材图片
+              </van-button> -->
+            </van-uploader>
+          </div>
+          
         </div>
-
         <div class="export">
-          <van-button @click="exportList" size='mini'>导出清单</van-button>
+          <span @click="showEdit">
+            <van-icon name="records" size="20px" />
+            编辑
+          </span>
+          <!-- <span @click="exportList">
+            <van-icon name="down" size="20px"  />
+            导出清单
+          </span> -->
+          <!-- <van-button @touchstart="showEdit" size='mini'>编辑</van-button>
+          <van-button @touchstart="exportList" size='mini'>导出清单</van-button> -->
         </div>
       </div>
     </div>
@@ -31,18 +48,18 @@
             </template>
           </van-image>
           <div class="right-nav-info">
-              <div>家具信息:{{curSelInfo}}</div>
+              <span class="right-info-content">家具信息:{{curSelInfo}}</span>
           </div>
       </div>
-      <content class="right-nav-content">
+      <div class="right-nav-content">
           <div v-for="source in sourceData" :key="source.id" class="right-nav-content-img">
               <van-image 
                 :src="source.path" 
                 fit="contain" 
                 class="sourceImage" 
                 :class="{'image-border': source.id == selectedId}" 
-                @click="clickImage(source)"
-                @dblclick="addImage(source)"
+                @touchstart="clickImage(source)"
+                @click="addImage(source)"
                 :draggable="true"
               >
                 <template #placeholder>
@@ -50,26 +67,28 @@
                   </div>
                 </template>
               </van-image>
-              <div>{{ source.name }}</div>
-              <div>￥{{ source.price }}</div>
+              <div class="image-info">
+                <div class="info-title">{{ source.name }}</div>
+                <div class="info-price">￥{{ source.price }}</div>
+              </div>
           </div>
-      </content>
+        </div>
     </div>
     <!-- <el-dialog v-model="dialogTableVisible" title="家居价格目录表">
       <el-table :data="tableData">
         <el-table-column property="家具名字" label="名称" width="150" />
         <el-table-column property="价格" label="价格（￥）" width="200" />
       </el-table>
-      <el-button @click="exportExcel">导出excel</el-button>
+      <el-button @touchstart="exportExcel">导出excel</el-button>
     </el-dialog> -->
   </div>
   
 </template>
 
 <script lang="ts" setup>
-import { onMounted, reactive, ReactiveFlags, Ref, ref } from 'vue';
+import { Ref, ref } from 'vue';
 import CanvasDrag from '@/pages/home/canvas-drag.vue';
-import { ElButton, ElMessage } from "element-plus"
+import { ElMessage } from "element-plus"
 import request from "@/utils/request"
 import * as XLSX from 'xlsx' // Vue3 版本
 import { useManageStore } from '@/store';
@@ -116,6 +135,12 @@ let selectMenu = ref([
   {key:'材质2', id:2},
   {key:'材质3', id:3}
 ])
+let showEdit = function() {
+  setTimeout(() => {
+    canvasDragRef.value.showEdit()
+  }, 100);
+}
+
 const imageForm = ['image/jpeg', 'image/png', 'image/jpg']
 /** 上传前做检查*/
 const beforeRead = (files:File | File[]) => {
@@ -134,6 +159,10 @@ const beforeRead = (files:File | File[]) => {
   }
   return true;
 };
+/**
+ * 加载背景
+ * @param fileListItem 
+ */
 function uploadBg(fileListItem:UploaderFileListItem) {
   const fileObj = new FileReader()
   fileObj.readAsDataURL(fileListItem.file)
@@ -185,29 +214,115 @@ function addImage(source:{name:string, price:string, [name:string]: any}) {
 }
 </script>
 
-<style  scoped>
+<style lang='scss' scoped>
 .main {
   display: flex;
+  width: 100vw;
+  height: 100%;
+  overflow: hidden;
 }
 .left-content {
+  display: flex;
+  flex-direction: column;
   width: 60%;
   height: 100%;
 }
 .btn {
+  flex: 1;
   display: flex;
   justify-content: space-between;
+  margin: 5px 30px 5px 10px;
+  color: #1989fa;
+  .uploadBtn {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    span {
+      font-size: 12px;
+    }
+  }
+  .export {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    span {
+      font-size: 12px;
+    }
+  }
 }
 .upload {
   margin-right: 30px;
 }
 .left-content {
+  flex: 2;
+}
+.right-nav {
+  display: flex;
+  flex-direction: column;
   flex: 1;
+  padding-bottom: 10px;
 }
 .right-nav-top {
   width: 100%;
+  height: auto;
+  max-height: 100px;
   display: flex;
+  margin-bottom: 10px;
+  .right-nav-img {
+    width: 40px;
+    height: auto;
+  }
+  .right-nav-info {
+    flex: 1;
+    padding-top: 10px;
+    padding-left: 5px;
+    font-size: 10px;
+    line-height: 12px;
+    word-break: break-all;
+  }
 }
-.right-nav-img {
-  width: 50%;
+
+.image-slot {
+  width: 100px;
+  height: 100px;
 }
+.sourceImage {
+  width: 100%;
+  height: auto;
+}
+.right-nav-content {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  text-align: center;
+  justify-content: space-between;
+  .right-nav-content-img {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 30%;
+    height: auto;
+    font-size: 8px;
+    padding: 5px 2px;
+    overflow: hidden;
+    .image-info {
+      margin-top: 5px;
+      div {
+        
+      }
+      .info-title{
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: normal;
+      }
+      .info-price {
+        margin-top: 5px;
+        color: #1989fa;
+      }
+    }
+  }
+}
+
 </style>

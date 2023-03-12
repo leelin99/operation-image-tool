@@ -32,7 +32,7 @@ export default class ImageModel {
 
 		private _upDownMirror:number = 1
 
-		private _iconWidth:number = 24
+		private _iconWidth:number = 15
 
 		private _iconImgs = {
 			ScaleIcon:new Image(),
@@ -48,7 +48,7 @@ export default class ImageModel {
 			this._image = new Image()
 			this._image.src = src
 			this._image.onload = () => {
-				const W = 400;
+				const W = 100;
 				const radio = Math.ceil((this._image.width / W))
 				this.w = this._image.width / radio
 				this.h = this._image.height / radio
@@ -140,6 +140,7 @@ export default class ImageModel {
 		 * @returns 
 		 */
     public getImageOrder(x:number, y:number):string {
+			const offset = 10
 			// 变换区域左上角的坐标和区域的高度宽度
 			let transformX = this.x + this.w ;
 			let transformY = this.y + this.h ;
@@ -163,13 +164,13 @@ export default class ImageModel {
 			let rotateXY = this.getTransform(rotateX, rotateY, ratateAngle);
 			rotateX = rotateXY.x, rotateY = rotateXY.y
 
-			if (x - scaleX >= 0 && y - scaleY >= 0 && scaleX + this._iconWidth - x >= 0 && scaleY + this._iconWidth - y >= 0) {
+			if (x - scaleX + offset >= 0 && y - scaleY + offset >= 0 && scaleX + this._iconWidth + offset - x >= 0 && scaleY + offset + this._iconWidth - y >= 0) {
 				// 缩放区域
 				return "scale";
-			}else if (x - delX >= 0 && y - delY >= 0 && delX + this._iconWidth - x >= 0 && delY + this._iconWidth - y >= 0) {
+			}else if (x - delX + offset >= 0 && y - delY + offset >= 0 && delX + this._iconWidth + offset - x >= 0 && delY + this._iconWidth + offset - y >= 0) {
 				// 删除区域
 				return 'del'
-			}else if (x - rotateX >= 0 && y - rotateY >= 0 && rotateX + this._iconWidth - x >= 0 && rotateY + this._iconWidth - y >= 0) {
+			}else if (x - rotateX + offset >= 0 && y - rotateY + offset >= 0 && rotateX + this._iconWidth + offset - x >= 0 && rotateY + this._iconWidth + offset - y >= 0) {
 				// 旋转
 				return "rotate";
 			}else if (x - moveX >= 0 && y - moveY >= 0 && moveX + this.w - x >= 0 && moveY + this.h - y >= 0) {
