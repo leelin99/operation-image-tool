@@ -1,5 +1,6 @@
 const Router = require('koa-router')
 const fs = require("fs")
+const imageList = require("../image-list.json")
 const router = new Router()
 const baseUrl = process.env.NODE_ENV === "development" ? "http://localhost:3001" : "http://39.108.236.220:3001"
 
@@ -17,12 +18,13 @@ router.post("/api/uploadImage", async (ctx) => {
 })
 router.get("/api/getImageList", async (ctx) => {
   const path = require("path")
-  const fileArr = fs.readdirSync(path.join(__dirname, "../static/image"), {encode: "utf-8", writeFileTypes: true})
+
+  const fileArr = imageList.map(img => ({id:img.id, value:img.value[0]}))
   const result = fileArr.map((file, index) => {
     return {
-      path: `${baseUrl}/image/${file}`,
-      id: index,
-      name: file.split(".")[0],
+      path: `${baseUrl}/image/${file.value}`,
+      id: file.id,
+      name: file.value.split(".")[0],
       price: parseInt(Math.random() * 30000 + 1000) 
     }
   })
@@ -30,6 +32,24 @@ router.get("/api/getImageList", async (ctx) => {
     code: 200,
     message: "获取成功",
     result,
+  }
+})
+router.post("/api/getImageById", async (ctx) => {
+  const query = ctx.request.body
+  const fileArr = imageList.find(img => img.id === query.id)
+  // const result = fileArr.map((file, index) => {
+  //   return {
+  //     path: `${baseUrl}/image/${file.value}`,
+  //     id: file.id,
+  //     name: file.value.split(".")[0],
+  //     price: parseInt(Math.random() * 30000 + 1000) 
+  //   }
+  // })
+  console.log(query)
+  ctx.body = {
+    code: 200,
+    message: "获取成功",
+    result: fileArr.value,
   }
 })
 module.exports = router

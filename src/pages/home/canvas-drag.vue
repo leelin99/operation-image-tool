@@ -88,6 +88,8 @@ function draw () {
 }
 
 function start (e:TouchEvent) {
+    debugger
+
     canMove = true
     // 初始化一个数组用于存放所有被点击到的图片对象
     clickedkArr = []

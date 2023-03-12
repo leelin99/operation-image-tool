@@ -93,7 +93,7 @@ import request from "@/utils/request"
 import * as XLSX from 'xlsx' // Vue3 版本
 import { useManageStore } from '@/store';
 import { showToast, UploaderFileListItem } from 'vant';
-let { modelsManage } = useManageStore()
+let { modelsManage, selectModel } = useManageStore()
 const canvasDragRef = ref(null)
 let dialogTableVisible = ref(false)
 let tableData:Ref<{"家具名字":string, "价格": string}[]> = ref([])
@@ -200,6 +200,15 @@ function clickImage(source:{name:string, id:number, path:string, [key:string]:an
   selectedId.value = id
   selectedSrc.value = path
   canvasDragRef.value.changeImage(path)
+  request({
+    method:"post",
+    url: "/api/getImageById",
+    data: {
+      id:id
+    }
+  }).then(res => {
+    console.log(res)
+  })
 }
 
 request({
@@ -210,6 +219,7 @@ request({
 })
 
 function addImage(source:{name:string, price:string, [name:string]: any}) {
+  if(selectModel) return
   canvasDragRef.value.pushImage(source, selectedSrc.value)
 }
 </script>

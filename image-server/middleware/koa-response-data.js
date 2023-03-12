@@ -5,7 +5,9 @@ console.log(baseUrl)
 module.exports = async (ctx, next) => {
   const url = ctx.request.url.replace("/api", "")
   if(url === "/getImageList") {
-    const path = require("path")
+    const path = require("url")
+    console.log(fileArr, "fileArr")
+    const fileArr = JSON.parse(imageList).map(img => img.value[0])
     const result = fileArr.map((file, index) => {
       return {
         path: `${baseUrl}/image/${file}`,
