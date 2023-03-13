@@ -19,5 +19,8 @@ app.use(koaBody({
 }))
 app.use(router.routes())
 app.use(router.allowedMethods())
-app.use(koaStatic(path.join(__dirname, "./static")))
+let opts = {
+  maxage: 2592000000, //静态资源30天缓存 实际上 = 2592000秒
+};
+app.use(koaStatic(path.join(__dirname, "./static")), opts)
 app.listen(3001)

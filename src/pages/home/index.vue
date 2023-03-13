@@ -155,11 +155,6 @@ function exportExcel() {
 // 当前家具的信息
 const curSelInfo = ref("")
 
-let selectMenu = ref([
-  {key:'材质1', id:1},
-  {key:'材质2', id:2},
-  {key:'材质3', id:3}
-])
 function uploadBg(e:Event) {
   const fileObj = new FileReader()
   fileObj.readAsDataURL((e.target as any).files[0])
