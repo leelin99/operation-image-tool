@@ -35,14 +35,23 @@
             </el-image>
             <div class="right-nav-info">
                 <div>家具信息:{{curSelInfo}}</div>
-                <el-dropdown>
-                    <el-button>更换材质</el-button>
-                    <template #dropdown>
-                        <el-dropdown-menu v-for="item in selectMenu" :key="item.id">
-                            <el-dropdown-item @click="handleCommand(item.id)">{{ item.key }}</el-dropdown-item>
-                        </el-dropdown-menu>
+                <div class="right-nav-info-img">
+                  <el-image 
+                    :src="img.path"
+                    v-for="img in typeArr"
+                    :key="img.path"
+                    class="selectImage" 
+                    :class="{'image-border': img.id == typeSelectedId}" 
+                    @click="selectType(img)"
+                    @dblclick="addImage(img)"
+                    >
+                    <template #placeholder>
+                      <div v-loading="true" class="image-slot">
+                      </div>
                     </template>
-                </el-dropdown>
+                  </el-image>
+                  <el-image   ></el-image>
+                </div>
             </div>
         </div>
         <content class="right-nav-content">
@@ -92,6 +101,8 @@ import { ElButton, ElMessage } from "element-plus"
 import request from "@/utils/request"
 import * as XLSX from 'xlsx' // Vue3 版本
 import { useManageStore } from '@/store';
+interface IImageSource {name:string, id:string, path:string, [key:string]:any}
+
 let { modelsManage } = useManageStore()
 const canvasDragRef = ref(null)
 let inputImage = ref(null)
@@ -144,9 +155,6 @@ function exportExcel() {
 // 当前家具的信息
 const curSelInfo = ref("")
 
-function handleCommand(id:number) {
-
-}
 let selectMenu = ref([
   {key:'材质1', id:1},
   {key:'材质2', id:2},
@@ -161,14 +169,32 @@ function uploadBg(e:Event) {
   }
 }
 let sourceData = ref([])
-let selectedId:Ref<number> = ref(null)
+let selectedId:Ref<string> = ref(null)
 let selectedSrc:Ref<string> = ref(null)
 
+let typeArr:Ref<IImageSource[]> = ref([])
 // 点击图片
-function clickImage(source:{name:string, id:number, path:string, [key:string]:any}) {
+let typeSelectedId = ref("")
+function clickImage(source:IImageSource) {
   const { name, id, path } = source
   curSelInfo.value = name
   selectedId.value = id
+  typeSelectedId.value = id + String(0)
+  selectedSrc.value = path
+  canvasDragRef.value.changeImage(path)
+  request({
+    method:"post",
+    url: "/api/getImageById",
+    data:{id}
+  }).then(res => {
+    typeArr.value = res.data.result
+  })
+}
+// 点击图片
+function selectType(source:IImageSource) {
+  const { name, id, path } = source
+  curSelInfo.value = name
+  typeSelectedId.value = id
   selectedSrc.value = path
   canvasDragRef.value.changeImage(path)
 }
@@ -180,12 +206,12 @@ request({
   sourceData.value = res.data.result
 })
 
-function addImage(source:{name:string, price:string, [name:string]: any}) {
+function addImage(source:IImageSource) {
   canvasDragRef.value.pushImage(source, selectedSrc.value)
 }
 </script>
 
-<style  scoped>
+<style scoped lang="scss">
 .wrap {
   width: 100%;
   height: 100%;
@@ -265,6 +291,10 @@ function addImage(source:{name:string, price:string, [name:string]: any}) {
   width: 150px;
   height: 150px;
 }
+.selectImage {
+  width: 100px;
+  height: 100px;
+}
 .image-border {
   border: 1px solid #000;
 }
@@ -272,6 +302,11 @@ function addImage(source:{name:string, price:string, [name:string]: any}) {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  .right-nav-info-img {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+  }
 }
 .image-slot {
   display: flex;
