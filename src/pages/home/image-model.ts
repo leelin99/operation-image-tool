@@ -1,3 +1,6 @@
+import close from '../../assets/image/icons/close.png'
+import rotate from '../../assets/image/icons/rotate.png'
+import scale from '../../assets/image/icons/scale.png'
 export default class ImageModel {
 
     public x:number
@@ -56,9 +59,9 @@ export default class ImageModel {
 			}
 			this.rotate = 0;
 			this.selected = false;
-			this._iconImgs.ScaleIcon.src = "/static/icons/scale.png"
-			this._iconImgs.CloseIcon.src = "/static/icons/close.png"
-			this._iconImgs.RotateIcon.src = "/static/icons/rotate.png"
+			this._iconImgs.ScaleIcon.src = scale
+			this._iconImgs.CloseIcon.src = close
+			this._iconImgs.RotateIcon.src = rotate
     }
 
 		public changeSrc(src:string) {
