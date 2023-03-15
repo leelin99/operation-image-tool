@@ -3,11 +3,14 @@
         <canvas id="myCanvas" class="canvas" style="border:1px solid #000000;"> </canvas>
         <van-action-sheet v-model:show="showAction" :actions="rightKeyMenu" @select="onSelect" close-on-click-action/>
     </div>
-
+    <img src="@/assets/image/icons/close.png" v-show="false">
+    <img src="@/assets/image/icons/rotate.png" alt="" srcset="" v-show="false">
+    <img src="@/assets/image/icons/scale.png" alt="" srcset="" v-show="false">
 </template>
 
 <script setup lang="ts">
 import { useManageStore } from '@/store/index';
+import { storeToRefs } from 'pinia';
 import { onMounted, Ref, ref, defineEmits } from 'vue';
 import ImageModel from './image-model';
 const emits = defineEmits(["deleteImg"])
@@ -26,7 +29,7 @@ const onSelect = (item:{name:string, value:number}) => {
     handleCommand(item.value)
 }
 const handleCommand = (command: string | number | object) => {
-    if(!selectModel) return;
+    if(!manageStore.selectModel) return;
     switch(command) {
         case MENU_CONST.LEFT_RIGHT_MIRROR :
             leftRightMirror()
@@ -45,27 +48,27 @@ const handleCommand = (command: string | number | object) => {
     }
 }
 function leftRightMirror() {
-    selectModel.leftRightMirror()
+    manageStore.selectModel.leftRightMirror()
     draw()
 }
 function upDownMirror() {
-    selectModel.upDownMirror()
+    manageStore.selectModel.upDownMirror()
     draw()
 }
 
 function up() {
-    const index = modelsManage.findIndex(el => el.img === selectModel)
-    const model = modelsManage[index]
-    modelsManage.splice(index, 1)
-    modelsManage.splice(index + 1, 0, model)
+    const index = manageStore.modelsManage.findIndex(el => el.img === manageStore.selectModel)
+    const model = manageStore.modelsManage[index]
+    manageStore.modelsManage.splice(index, 1)
+    manageStore.modelsManage.splice(index + 1, 0, model)
     draw()
 }
 
 function down() {
-    const index = modelsManage.findIndex(el => el.img === selectModel)
-    const model = modelsManage[index]
-    modelsManage.splice(index, 1)
-    modelsManage.splice(index - 1, 0, model)
+    const index = manageStore.modelsManage.findIndex(el => el.img === manageStore.selectModel)
+    const model = manageStore.modelsManage[index]
+    manageStore.modelsManage.splice(index, 1)
+    manageStore.modelsManage.splice(index - 1, 0, model)
     draw()
 }
 
@@ -76,32 +79,31 @@ let lastImg:ImageModel = null
 let initial:any = null
 let startTouch:any = null
 let canMove = false
-let { modelsManage, selectModel} = useManageStore()
+let manageStore = useManageStore()
 const props = defineProps({
     selectedSrc:null
 })
 function draw () {
     ctx.clearRect(0, 0, canvas.width, canvas.height)
-    modelsManage.forEach((item) => {
+    manageStore.modelsManage.forEach((item) => {
         item.img.paint()
     })
 }
 
 function start (e:TouchEvent) {
-    debugger
-
     canMove = true
     // 初始化一个数组用于存放所有被点击到的图片对象
     clickedkArr = []
     const x = e.targetTouches[0].clientX
     const y = e.targetTouches[0].clientY
-    modelsManage.forEach((item, index) => {
+    manageStore.modelsManage.forEach((item, index) => {
         const place = item.img.getImageOrder(x, y - canvas.offsetTop)
         item.img.place = place
         item.img.index = index
         // 先将所有的item.img的selected变为flase
         item.img.selected = false
-        selectModel = null
+        manageStore.selected = false
+        manageStore.selectModel = null
         if (place !== "false") {
             clickedkArr.push(item.img)
         }
@@ -111,13 +113,14 @@ function start (e:TouchEvent) {
         // 我们知道cavans绘制的图片的层级是越来越高的，因此我们取这个数组的最后一项，保证取到的图片实例是层级最高的
         lastImg = clickedkArr[length - 1]
         if (lastImg.place === 'del') {
-            modelsManage.splice(lastImg.index, 1)
+            manageStore.modelsManage.splice(lastImg.index, 1)
             // 重新绘制
             draw()
             return
         }
         // 将该实例的被选值设为true，下次重新绘制将绘制边框
-        selectModel = lastImg
+        manageStore.selectModel = lastImg
+        manageStore.selected = true
         lastImg.selected = true
         // 保存这个实例的初始值，以后会用上
         initial = {
@@ -183,8 +186,8 @@ function touchend(e:TouchEvent) {
     e.preventDefault()
     const x = e.targetTouches[0].clientX
     const y = e.targetTouches[0].clientY
-    if(!selectModel)return
-    const place = selectModel.getImageOrder(x, y - canvas.offsetTop)
+    if(!manageStore.selectModel)return
+    const place = manageStore.selectModel.getImageOrder(x, y - canvas.offsetTop)
     if (place !== "false") {
         if (place === 'move') {
             canvas.style.cursor = "move"
@@ -201,19 +204,20 @@ function touchend(e:TouchEvent) {
 }
 
 function changeImage(res:string) {
-    if(!selectModel) return;
-    selectModel.changeSrc(res)
-    selectModel = null
+    if(!manageStore.selectModel) return;
+    
+    manageStore.selectModel.changeSrc(res)
+    manageStore.selectModel = null
     draw()
 }
 
 function pushImage(source:{name:string, id:number, path:string, [key:string]:any}) {
     const item = new ImageModel(source.path, ctx)
-    modelsManage.push({img:item, name:source.name, id:source.id, price: source.price})
+    manageStore.modelsManage.push({img:item, name:source.name, id:source.id, price: source.price})
     draw()
 }
 function showEdit() {
-    if(!selectModel) return;
+    if(!manageStore.selectModel) return;
     showAction.value = true
 }
 
@@ -234,7 +238,6 @@ onMounted(() => {
         canvas.style.cursor = ""
     }
     canvas.addEventListener("tap", () => {
-        debugger
     })
     // canvas.ontouchstart = e => {
     //     console.log(e.button)

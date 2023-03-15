@@ -22,20 +22,20 @@
               </van-button> -->
             </van-uploader>
           </div>
-          
+          <div class="export">
+            <span @click="showEdit">
+              <van-icon name="records" size="20px" />
+              编辑
+            </span>
+            <span @click="exportList">
+              <van-icon name="down" size="20px"  />
+              导出清单
+            </span>
+            <!-- <van-button @touchstart="showEdit" size='mini'>编辑</van-button>
+            <van-button @touchstart="exportList" size='mini'>导出清单</van-button> -->
+          </div>
         </div>
-        <div class="export">
-          <span @click="showEdit">
-            <van-icon name="records" size="20px" />
-            编辑
-          </span>
-          <!-- <span @click="exportList">
-            <van-icon name="down" size="20px"  />
-            导出清单
-          </span> -->
-          <!-- <van-button @touchstart="showEdit" size='mini'>编辑</van-button>
-          <van-button @touchstart="exportList" size='mini'>导出清单</van-button> -->
-        </div>
+
       </div>
     </div>
     <div class="right-nav">
@@ -48,7 +48,7 @@
             </template>
           </van-image>
           <div class="right-nav-info">
-              <span class="right-info-content">家具信息:{{curSelInfo}}</span>
+            <span class="right-info-content">家具信息:{{curSelInfo}}</span>
           </div>
       </div>
       <div class="right-nav-content">
@@ -74,12 +74,12 @@
           </div>
         </div>
     </div>
+    <van-dialog class="dialog" v-model:show="dialogTableVisible" title="家居价格目录表" closeOnClickOverlay>
+      <MyTable :columns="headData" :data="tableData"/>
+      <van-button @touchstart="exportExcel" size='mini'>导出excel</van-button>
+    </van-dialog>
     <!-- <el-dialog v-model="dialogTableVisible" title="家居价格目录表">
-      <el-table :data="tableData">
-        <el-table-column property="家具名字" label="名称" width="150" />
-        <el-table-column property="价格" label="价格（￥）" width="200" />
-      </el-table>
-      <el-button @touchstart="exportExcel">导出excel</el-button>
+
     </el-dialog> -->
   </div>
   
@@ -93,19 +93,20 @@ import request from "@/utils/request"
 import * as XLSX from 'xlsx' // Vue3 版本
 import { useManageStore } from '@/store';
 import { showToast, UploaderFileListItem } from 'vant';
-let { modelsManage, selectModel } = useManageStore()
+import MyTable from "@/components/my-table.vue";
+import { showNotify } from 'vant';
+let manageStore = useManageStore()
 const canvasDragRef = ref(null)
 let dialogTableVisible = ref(false)
 let tableData:Ref<{"家具名字":string, "价格": string}[]> = ref([])
+const headData = [{name:'家具名字', key:'家具名字'},{name:'价格', key:'价格'}]
 // 导出清单
 function exportList() {
-  if(!modelsManage.length){ 
-    ElMessage({
-      message: "场景无家居"
-    })
+  if(!manageStore.modelsManage.length){ 
+    showNotify({ message: '场景无家居' })
     return 
   }
-  tableData.value = modelsManage.map(model => ({"家具名字":model.name, "价格": model.price}))
+  tableData.value = manageStore.modelsManage.map(model => ({"家具名字":model.name, "价格": model.price}))
   const total = tableData.value.reduce((pre, next) => {
     return {'价格':String(Number(pre['价格']) + Number(next['价格'])), '家具名字': ''}
   })
@@ -122,7 +123,7 @@ function exportExcel() {
     // 将工作表放入工作簿中
     XLSX.utils.book_append_sheet(wb, data, 'data')
     // 生成文件并下载
-    XLSX.writeFile(wb, 'test.xlsx')
+    XLSX.writeFile(wb, 'price-total.xlsx')
 }
 // 当前家具的信息
 const curSelInfo = ref("")
@@ -198,15 +199,15 @@ function clickImage(source:{name:string, id:number, path:string, [key:string]:an
   selectedId.value = id
   selectedSrc.value = path
   canvasDragRef.value.changeImage(path)
-  request({
-    method:"post",
-    url: "/api/getImageById",
-    data: {
-      id:id
-    }
-  }).then(res => {
-    console.log(res)
-  })
+  // request({
+  //   method:"post",
+  //   url: "/api/getImageById",
+  //   data: {
+  //     id:id
+  //   }
+  // }).then(res => {
+  //   console.log(res)
+  // })
 }
 
 request({
@@ -217,7 +218,7 @@ request({
 })
 
 function addImage(source:{name:string, price:string, [name:string]: any}) {
-  if(selectModel) return
+  if(manageStore.selected) return
   canvasDragRef.value.pushImage(source, selectedSrc.value)
 }
 </script>
@@ -243,7 +244,7 @@ function addImage(source:{name:string, price:string, [name:string]: any}) {
   color: #1989fa;
   .uploadBtn {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     justify-content: space-between;
     span {
       font-size: 12px;
@@ -251,7 +252,7 @@ function addImage(source:{name:string, price:string, [name:string]: any}) {
   }
   .export {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     justify-content: space-between;
     span {
       font-size: 12px;
@@ -317,9 +318,6 @@ function addImage(source:{name:string, price:string, [name:string]: any}) {
     overflow: hidden;
     .image-info {
       margin-top: 5px;
-      div {
-        
-      }
       .info-title{
         overflow: hidden;
         text-overflow: ellipsis;
@@ -330,7 +328,15 @@ function addImage(source:{name:string, price:string, [name:string]: any}) {
         color: #1989fa;
       }
     }
+  };
+  dialog {
+    max-height: 150px;
+    overflow: auto;
   }
-}
 
+}
+::v-deep(.van-dialog__content){
+  height: 200px;
+  overflow: scroll;
+}
 </style>

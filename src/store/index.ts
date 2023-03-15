@@ -3,7 +3,8 @@ import { defineStore } from "pinia";
 
 interface IManageStrore {
     selectModel:ImageModel,
-    modelsManage:{img:ImageModel, name:string, id:number, price:string}[]
+    modelsManage:{img:ImageModel, name:string, id:number, price:string}[],
+    selected: boolean
 }
 
 export const useManageStore= defineStore<string, IManageStrore>(
@@ -11,7 +12,8 @@ export const useManageStore= defineStore<string, IManageStrore>(
     {
         state: () => ({
             modelsManage: [],
-            selectModel: null
+            selectModel: null,
+            selected: false
         })
     }
 )

@@ -1,3 +1,6 @@
+import close from '../../assets/image/icons/close.png'
+import rotate from '../../assets/image/icons/rotate.png'
+import scale from '../../assets/image/icons/scale.png'
 export default class ImageModel {
 
     public x:number
@@ -34,6 +37,8 @@ export default class ImageModel {
 
 		private _iconWidth:number = 15
 
+		static W = 100
+
 		private _iconImgs = {
 			ScaleIcon:new Image(),
 			CloseIcon:new Image(),
@@ -48,17 +53,16 @@ export default class ImageModel {
 			this._image = new Image()
 			this._image.src = src
 			this._image.onload = () => {
-				const W = 100;
-				const radio = Math.ceil((this._image.width / W))
+				const radio = Math.ceil((this._image.width / ImageModel.W))
 				this.w = this._image.width / radio
 				this.h = this._image.height / radio
 				this._ctx.drawImage(this._image, this.x, this.y, this.w, this.h);
 			}
 			this.rotate = 0;
 			this.selected = false;
-			this._iconImgs.ScaleIcon.src = "/static/icons/scale.png"
-			this._iconImgs.CloseIcon.src = "/static/icons/close.png"
-			this._iconImgs.RotateIcon.src = "/static/icons/rotate.png"
+			this._iconImgs.ScaleIcon.src = scale
+			this._iconImgs.CloseIcon.src = close
+			this._iconImgs.RotateIcon.src = rotate
     }
 
 		public changeSrc(src:string) {
@@ -75,8 +79,7 @@ export default class ImageModel {
 			new Promise((resolve, reject) => {
 				this._reload = true
 				this._image.onload = () => {
-					const W = 400;
-					const radio = Number((this._image.width / W).toFixed(0))
+					const radio = Number((this._image.width / ImageModel.W).toFixed(0))
 					this.w = this._image.width / radio
 					this.h = this._image.height / radio
 					this._ctx.drawImage(this._image, this.x, this.y, this.w, this.h);
